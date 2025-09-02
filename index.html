@@ -1,1 +1,177 @@
-index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cross Pistols Trainer</title>
+<style>
+  :root{
+    --bg:#0e1117; --ui:#e7ebf2; --accent:#2bd97f;
+    --count-opacity:.20;
+    --par-seconds:22;
+    --delay-min:4;
+    --delay-max:12;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--ui);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    display:flex;flex-direction:column
+  }
+  header{padding:1rem;display:flex;gap:.75rem;align-items:center}
+  button{
+    background:var(--accent);color:#062f1d;border:0;padding:.8rem 1rem;
+    border-radius:.8rem;font-weight:800;cursor:pointer
+  }
+  button:disabled{opacity:.55;cursor:not-allowed}
+  #status{margin-left:auto;font-weight:800}
+  main{flex:1;display:grid;place-items:center}
+
+  /* Stage with depth so timer looks projected on the floor */
+  #stage{
+    position:relative;width:min(66vmin,88vw);height:min(86vmin,82vh);
+    display:grid;place-items:center;perspective:2200px;transform-style:preserve-3d;
+  }
+  /* Floor timer */
+  #big{
+    position:absolute;bottom:2.5%;left:50%;
+    transform:translateX(-50%) rotateX(84deg) scale(1.55);
+    transform-origin:50% 100%;
+    font-weight:1000;font-size:min(36vmin,28vh);line-height:.8;letter-spacing:-.03em;
+    color:var(--ui);opacity:var(--count-opacity);user-select:none;pointer-events:none;
+    text-shadow:0 24px 40px rgba(0,0,0,.78), 0 6px 0 rgba(0,0,0,.6);
+    z-index:0;
+  }
+
+  .turner{width:100%;height:100%;position:relative;z-index:1;perspective:1400px}
+  .flipper{
+    position:absolute;inset:0;transform-style:preserve-3d;
+    transition:transform .55s cubic-bezier(.2,.7,.2,1);
+  }
+  .face{position:absolute;inset:0;display:grid;place-items:center;backface-visibility:hidden}
+  .back{transform:rotateY(180deg);color:#cfd6e1;font-weight:800;letter-spacing:.08em}
+  .away .flipper{transform:rotateY(180deg)}
+  .facing .flipper{transform:rotateY(0deg)}
+
+  .paper{
+    max-width:92%;max-height:96%;
+    filter:drop-shadow(0 28px 60px rgba(0,0,0,.55));
+    transform-origin:50% 10%;
+  }
+  .sway{animation:sway 3.6s ease-in-out infinite alternate}
+  @keyframes sway{0%{transform:rotateZ(-.7deg)}100%{transform:rotateZ(.7deg)}}
+</style>
+</head>
+<body class="away">
+<header>
+  <button id="start">Start</button>
+  <button id="stop" disabled>Stop/Reset</button>
+  <label><input type="checkbox" id="mute">Mute beeps</label>
+  <div id="status" aria-live="polite">Idle</div>
+</header>
+
+<main>
+  <section id="stage" aria-label="training lane">
+    <div id="big">–</div>
+    <div class="turner away" id="turner">
+      <div class="flipper" id="flipper">
+        <div class="face front"><img id="targetImg" class="paper" alt="target"/></div>
+        <div class="face back">TARGET AWAY</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=> {
+  /* Point to PNGs you uploaded in /assets */
+  const TARGETS = [
+    "./assets/green.png",
+    "./assets/blue.png"
+  ];
+
+  const startBtn = document.getElementById('start');
+  const stopBtn  = document.getElementById('stop');
+  const muteChk  = document.getElementById('mute');
+  const statusEl = document.getElementById('status');
+  const turner   = document.getElementById('turner');
+  const flipper  = document.getElementById('flipper');
+  const img      = document.getElementById('targetImg');
+  const big      = document.getElementById('big');
+
+  const cs   = getComputedStyle(document.documentElement);
+  const PAR  = +cs.getPropertyValue('--par-seconds')||22;
+  const DMIN = +cs.getPropertyValue('--delay-min')||4;
+  const DMAX = +cs.getPropertyValue('--delay-max')||12;
+
+  let state='idle', dTO=null, pTO=null, tTO=null, ac=null;
+
+  function status(t){ statusEl.textContent=t; }
+  function audio(){ if(!ac){ ac=new (window.AudioContext||window.webkitAudioContext)(); } if(ac.state==='suspended') ac.resume(); }
+  function beep(f=1000,ms=160){
+    if(muteChk.checked||!ac) return;
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.type='square'; o.frequency.value=f; o.connect(g); g.connect(ac.destination);
+    const n=ac.currentTime;
+    g.gain.setValueAtTime(0.0001,n);
+    g.gain.exponentialRampToValueAtTime(0.32,n+.01);
+    g.gain.exponentialRampToValueAtTime(0.0001,n+ms/1000);
+    o.start(n); o.stop(n+ms/1000+.02);
+  }
+  const startBeep=()=>beep(1200,180);
+  const endBeep  =()=>{beep(880,220); setTimeout(()=>beep(660,180),180);};
+
+  function say(text){ try{ const u=new SpeechSynthesisUtterance(text); u.rate=1; u.pitch=1; u.volume=.9; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch{} }
+  function clearTimers(){ [dTO,pTO,tTO].forEach(t=>t&&clearTimeout(t)); dTO=pTO=tTO=null; }
+
+  function setFacing(isFacing){
+    flipper.style.transform = isFacing ? 'rotateY(0deg)' : 'rotateY(180deg)';
+    turner.classList.toggle('facing', isFacing);
+    turner.classList.toggle('away',   !isFacing);
+    img.classList.toggle('sway', isFacing);
+  }
+  function hideTarget(){ setFacing(false); }
+  function showTarget(){
+    const pick = TARGETS[(Math.random()*1e9|0)%TARGETS.length];
+    img.src = pick; // relative path inside repo
+    setFacing(true);
+  }
+
+  function reset(){
+    clearTimers(); state='idle';
+    hideTarget(); big.textContent='–';
+    status('Idle'); startBtn.disabled=false; stopBtn.disabled=true;
+  }
+
+  const randMs=(a,b)=>Math.round((Math.random()*(b-a)+a)*1000);
+  function tick(s){ big.textContent = s>0 ? String(s) : '0'; if(s<=0) return; tTO = setTimeout(()=>tick(s-1),1000); }
+
+  function start(){
+    if(state!=='idle') return;
+    audio();
+    state='standby'; hideTarget(); big.textContent='–';
+    status('Standby…'); startBtn.disabled=true; stopBtn.disabled=false;
+    say('Shooters, be ready');
+    dTO = setTimeout(()=>{
+      if(state!=='standby') return;
+      state='presenting'; startBeep(); showTarget(); status('UP!'); tick(PAR);
+      pTO = setTimeout(()=>{
+        endBeep(); hideTarget(); status('DOWN.');
+        state='idle'; startBtn.disabled=false; stopBtn.disabled=true;
+        setTimeout(()=>big.textContent='–',800);
+      }, PAR*1000);
+    }, randMs(DMIN, DMAX));
+  }
+
+  startBtn.addEventListener('click', start);
+  stopBtn .addEventListener('click', reset);
+  document.addEventListener('keydown', e=>{
+    if(e.code==='Space'){ e.preventDefault(); state==='idle' ? start() : reset(); }
+  });
+
+  reset(); // UI-only on load
+})();
+</script>
+</body>
+</html>
