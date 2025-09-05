@@ -23,13 +23,35 @@
     display:flex;flex-direction:column
   }
   header{padding:1rem;display:flex;gap:.75rem;align-items:center}
+  #courseSelection { margin-right: auto; }
+  #courseSelection button {
+    background: transparent;
+    color: var(--ui);
+    opacity: 0.6;
+    border: 1px solid var(--ui);
+  }
+  #courseSelection button.active {
+    background: var(--accent);
+    color: #062f1d;
+    opacity: 1;
+    border-color: var(--accent);
+  }
   button{
     background:var(--accent);color:#062f1d;border:0;padding:.8rem 1rem;
     border-radius:.8rem;font-weight:800;cursor:pointer
   }
   button:disabled{opacity:.55;cursor:not-allowed}
-  #status{margin-left:auto;font-weight:800}
+  #status{font-weight:800}
   main{flex:1;display:grid;place-items:center}
+  #stageInfo {
+    padding: 0 1rem 1rem;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #cfd6e1;
+  }
+  #stageInfo h2 { margin: 0 0 0.5rem; font-size: 1.5rem; color: var(--ui); }
+  #stageInfo p { margin: 0; }
+
 
   /* Stage with depth so timer looks projected on the floor */
   #stage{
@@ -96,13 +118,18 @@
 </head>
 <body class="away">
 <header>
-  <button id="start">Start</button>
+  <div id="courseSelection">
+    <button id="instructorBtn" class="active">Instructor</button>
+    <button id="memberBtn">Regular Member</button>
+  </div>
+  <button id="start">Start Course</button>
   <button id="stop" disabled>Stop/Reset</button>
   <label><input type="checkbox" id="mute">Mute beeps</label>
   <div id="status" aria-live="polite">Idle</div>
 </header>
 
 <main>
+  <div id="stageInfo"></div>
   <section id="stage" aria-label="training lane">
     <div id="big" class="hidden">–</div>
     <div class="turner away" id="turner">
@@ -124,6 +151,38 @@
     "blue.png"
   ];
 
+  const INSTRUCTOR_COF = [
+    {
+      name: "Stage 1",
+      instructions: "15m, 22 sec. Holstered. String A: Draw, fire 4. String B: Drop to kneel, fire 4.",
+      parTime: 22,
+      type: 'single_exposure'
+    },
+    {
+      name: "Stage 2",
+      instructions: "7m, 8 sec. High ready. Drill (2x): Fire 2, reload, fire 2.",
+      parTime: 8,
+      type: 'reload_prompt',
+      prompt_start: 5, // time remaining to start prompt
+      prompt_end: 3    // time remaining to end prompt
+    },
+    {
+      name: "Stage 3",
+      instructions: "5m, 5 sec per rep. Holstered. Drill (3x): Draw, fire 2, fire 1 to head.",
+      parTime: 5,
+      reps: 3,
+      delay_min: 3.5,
+      delay_max: 6,
+      type: 'multi_rep'
+    },
+    {
+      name: "Stage 4",
+      instructions: "25m, 45 sec. Holstered. A: 3 rounds standing. B: 3 rounds cover. C: 3 rounds kneeling cover.",
+      parTime: 45,
+      type: 'single_exposure'
+    }
+  ];
+
   const startBtn = document.getElementById('start');
   const stopBtn  = document.getElementById('stop');
   const muteChk  = document.getElementById('mute');
@@ -133,13 +192,13 @@
   const img      = document.getElementById('targetImg');
   const big      = document.getElementById('big');
   const pBar     = document.getElementById('progressBar');
-
-  const cs   = getComputedStyle(document.documentElement);
-  const PAR  = +cs.getPropertyValue('--par-seconds')||22;
-  const DMIN = +cs.getPropertyValue('--delay-min')||4;
-  const DMAX = +cs.getPropertyValue('--delay-max')||12;
+  const instructorBtn = document.getElementById('instructorBtn');
+  const memberBtn = document.getElementById('memberBtn');
+  const stageInfo = document.getElementById('stageInfo');
 
   let state='idle', dTO=null, pTO=null, tAF=null, endTime=0, ac=null;
+  let currentCourse = INSTRUCTOR_COF;
+  let currentStageIndex = 0;
 
   function status(t){ statusEl.textContent=t; }
   function audio(){ if(!ac){ ac=new (window.AudioContext||window.webkitAudioContext)(); } if(ac.state==='suspended') ac.resume(); }
@@ -173,20 +232,43 @@
     setFacing(true);
   }
 
-  function reset(){
-    clearTimers(); state='idle';
-    hideTarget(); big.textContent='–';
+  function loadStage(stageIndex){
+    clearTimers();
+    state = 'idle';
+    hideTarget();
+
+    currentStageIndex = stageIndex;
+    const stage = currentCourse[currentStageIndex];
+
+    if(!stage){
+      stageInfo.innerHTML = `<h2>Course Complete!</h2>`;
+      startBtn.disabled = true;
+      stopBtn.disabled = true;
+      status('Done');
+      return;
+    }
+
+    stageInfo.innerHTML = `<h2>${stage.name}</h2><p>${stage.instructions}</p>`;
+    big.textContent='–';
     big.classList.remove('warning');
     big.classList.add('hidden');
     pBar.style.width = '100%';
     pBar.style.backgroundColor = 'transparent';
-    status('Idle'); startBtn.disabled=false; stopBtn.disabled=true;
+    startBtn.textContent = `Start ${stage.name}`;
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    status('Ready');
+  }
+
+  function reset(){
+    loadStage(0);
   }
 
   const randMs=(a,b)=>Math.round((Math.random()*(b-a)+a)*1000);
   function tick(){
+    const stage = currentCourse[currentStageIndex];
     const remaining = endTime - Date.now();
-    const total = PAR * 1000;
+    const total = stage.parTime * 1000;
 
     if(remaining <= 0){
       big.textContent = '00.00';
@@ -198,30 +280,98 @@
     big.textContent = seconds.toFixed(2).padStart(5, '0');
     pBar.style.width = `${(remaining/total)*100}%`;
 
-    if (remaining < total * 0.1) { // 10% of PAR
+    if (remaining < total * 0.1) {
       big.classList.add('warning');
     }
+
+    if(stage.type === 'reload_prompt'){
+      const seconds_remaining = remaining / 1000;
+      if(seconds_remaining < stage.prompt_start && seconds_remaining > stage.prompt_end) {
+        statusEl.textContent = 'RELOAD!';
+      } else if (state === 'presenting') {
+        statusEl.textContent = 'UP!';
+      }
+    }
+
     tAF = requestAnimationFrame(tick);
+  }
+
+  function runSingleExposureStage(){
+    const stage = currentCourse[currentStageIndex];
+    big.classList.remove('warning');
+    audio();
+    state='standby';
+    stageInfo.innerHTML = `<h2>${stage.name}</h2><p>...Standby...</p>`;
+    status('Standby…');
+    startBtn.disabled=true;
+    stopBtn.disabled=false;
+
+    dTO = setTimeout(()=>{
+      if(state!=='standby') return;
+      endTime = Date.now() + stage.parTime * 1000;
+      big.classList.remove('hidden');
+      state='presenting';
+      startBeep();
+      showTarget();
+      status('UP!');
+      tick();
+
+      pTO = setTimeout(()=>{
+        endBeep();
+        hideTarget();
+        status('DOWN.');
+        setTimeout(()=>loadStage(currentStageIndex + 1), 1200);
+      }, stage.parTime*1000);
+    }, randMs(4, 12));
+  }
+
+  function runMultiRepStage(repsRemaining){
+    if(repsRemaining <= 0) {
+      loadStage(currentStageIndex + 1);
+      return;
+    }
+
+    const stage = currentCourse[currentStageIndex];
+    big.classList.remove('warning');
+    audio();
+    state='standby';
+    stageInfo.innerHTML = `<h2>${stage.name}</h2><p>Rep ${stage.reps - repsRemaining + 1} of ${stage.reps}</p><p>...Standby...</p>`;
+    status('Standby…');
+    startBtn.disabled=true;
+    stopBtn.disabled=false;
+
+    dTO = setTimeout(() => {
+      if (state !== 'standby') return;
+      endTime = Date.now() + stage.parTime * 1000;
+      big.classList.remove('hidden');
+      state = 'presenting';
+      startBeep();
+      showTarget();
+      status('UP!');
+      tick();
+
+      pTO = setTimeout(() => {
+        endBeep();
+        hideTarget();
+        status('DOWN.');
+
+        const delay = randMs(stage.delay_min, stage.delay_max);
+        stageInfo.innerHTML = `<h2>${stage.name}</h2><p>Next rep in ${(delay/1000).toFixed(1)} seconds...</p>`;
+        setTimeout(() => runMultiRepStage(repsRemaining - 1), delay);
+      }, stage.parTime * 1000);
+    }, randMs(4, 12));
   }
 
   function start(){
     if(state!=='idle') return;
-    big.classList.remove('warning');
-    audio();
-    state='standby'; hideTarget(); big.textContent='–';
-    status('Standby…'); startBtn.disabled=true; stopBtn.disabled=false;
-    say('Shooters, be ready');
-    dTO = setTimeout(()=>{
-      if(state!=='standby') return;
-      endTime = Date.now() + PAR * 1000;
-      big.classList.remove('hidden');
-      state='presenting'; startBeep(); showTarget(); status('UP!'); tick();
-      pTO = setTimeout(()=>{
-        endBeep(); hideTarget(); status('DOWN.');
-        state='idle'; startBtn.disabled=false; stopBtn.disabled=true;
-        setTimeout(()=>big.textContent='–',800);
-      }, PAR*1000);
-    }, randMs(DMIN, DMAX));
+    const stage = currentCourse[currentStageIndex];
+    if(!stage) return;
+
+    if(stage.type === 'multi_rep') {
+      runMultiRepStage(stage.reps);
+    } else {
+      runSingleExposureStage();
+    }
   }
 
   startBtn.addEventListener('click', start);
@@ -230,7 +380,7 @@
     if(e.code==='Space'){ e.preventDefault(); state==='idle' ? start() : reset(); }
   });
 
-  reset(); // UI-only on load
+  loadStage(0);
 })();
 </script>
 </body>
