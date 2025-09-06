@@ -6,7 +6,7 @@
 <title>Cross Pistols Trainer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0e1117; --ui:#e7ebf2; --accent:#2bd97f;
@@ -48,9 +48,28 @@
     text-align: center;
     font-size: 1.1rem;
     color: #cfd6e1;
+    transition: opacity .3s;
   }
   #stageInfo h2 { margin: 0 0 0.5rem; font-size: 1.5rem; color: var(--ui); }
   #stageInfo p { margin: 0; }
+
+  body.cinema-active header button {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  #cornerStage {
+    position: fixed;
+    bottom: 1rem;
+    left: 1.5rem;
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--ui);
+    opacity: 0;
+    transition: opacity .3s;
+    z-index: 200;
+  }
 
 
   /* Stage with depth so timer looks projected on the floor */
@@ -127,6 +146,7 @@
 </header>
 
 <main>
+  <div id="cornerStage"></div>
   <div id="stageInfo"></div>
   <section id="stage" aria-label="training lane">
     <div id="big" class="hidden">–</div>
@@ -152,13 +172,31 @@
   const INSTRUCTOR_COF = [
     {
       name: "Stage 1",
-      instructions: "15m, 22 sec. Holstered. String A: Draw, fire 4. String B: Drop to kneel, fire 4.",
+      instructions: [
+        "STAGE 1",
+        "15m",
+        "22 sec time limit",
+        "Start holstered",
+        "String A: Draw, fire 4 standing",
+        "String B: Drop to kneel, fire 4 kneeling",
+        "8 rounds total"
+      ],
       parTime: 22,
       type: 'single_exposure'
     },
     {
       name: "Stage 2",
-      instructions: "7m, 8 sec. High ready. Drill (2x): Fire 2, reload, fire 2.",
+      instructions: [
+        "STAGE 2",
+        "7m",
+        "8 sec time limit",
+        "Start high ready",
+        "Drill (Repeat 2x):",
+        "Fire 2 rounds",
+        "Reload",
+        "Fire 2 rounds",
+        "8 rounds total"
+      ],
       parTime: 8,
       type: 'reload_prompt',
       prompt_start: 5, // time remaining to start prompt
@@ -166,7 +204,16 @@
     },
     {
       name: "Stage 3",
-      instructions: "5m, 5 sec per rep. Holstered. Drill (3x): Draw, fire 2, fire 1 to head.",
+      instructions: [
+        "STAGE 3",
+        "5m",
+        "5 sec per rep",
+        "Start holstered",
+        "Drill (Repeat 3x):",
+        "Draw, fire 2 to centre mass",
+        "1 round to head",
+        "9 rounds total"
+      ],
       parTime: 5,
       reps: 3,
       delay_min: 3.5,
@@ -175,7 +222,16 @@
     },
     {
       name: "Stage 4",
-      instructions: "25m, 45 sec. Holstered. A: 3 rounds standing. B: 3 rounds cover. C: 3 rounds kneeling cover.",
+      instructions: [
+        "STAGE 4",
+        "25m",
+        "45 sec time limit",
+        "Start holstered",
+        "String A: 3 rounds standing, no cover",
+        "String B: 3 rounds standing, from cover",
+        "String C: 3 rounds kneeling, from cover",
+        "9 rounds total"
+      ],
       parTime: 45,
       type: 'single_exposure'
     }
@@ -193,6 +249,8 @@
   const instructorBtn = document.getElementById('instructorBtn');
   const memberBtn = document.getElementById('memberBtn');
   const stageInfo = document.getElementById('stageInfo');
+  const cornerStage = document.getElementById('cornerStage');
+  const backFace = flipper.querySelector('.back');
 
   let state='idle', dTO=null, pTO=null, tAF=null, endTime=0, ac=null;
   let currentCourse = INSTRUCTOR_COF;
@@ -213,7 +271,30 @@
   const startBeep=()=>beep(1200,180);
   const endBeep  =()=>{beep(880,220); setTimeout(()=>beep(660,180),180);};
 
-  function say(text){ try{ const u=new SpeechSynthesisUtterance(text); u.rate=1; u.pitch=1; u.volume=.9; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch{} }
+  function say(text, onEndCallback){
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1; u.pitch = 1; u.volume = .9;
+
+      let callbackFired = false;
+      const onEnd = () => {
+        if (callbackFired) return;
+        callbackFired = true;
+        if(onEndCallback) onEndCallback();
+      };
+
+      u.onend = onEnd;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(u);
+
+      // Failsafe timeout in case onend doesn't fire in headless/test env
+      setTimeout(onEnd, 2000);
+    } catch(e) {
+      console.error("Speech synthesis failed.", e);
+      // If speech API is totally broken, fire callback immediately
+      if(onEndCallback) setTimeout(onEndCallback, 100);
+    }
+  }
   function clearTimers(){ [dTO,pTO].forEach(t=>t&&clearTimeout(t)); if(tAF) cancelAnimationFrame(tAF); dTO=pTO=tAF=null; }
 
   function setFacing(isFacing){
@@ -230,7 +311,21 @@
     setFacing(true);
   }
 
+  function setCinemaMode(active){
+    document.body.classList.toggle('cinema-active', active);
+    stageInfo.style.opacity = active ? 0 : 1;
+    cornerStage.style.opacity = active ? 1 : 0;
+    if(active){
+      cornerStage.textContent = currentCourse[currentStageIndex].name;
+      backFace.textContent = '';
+    } else {
+      backFace.textContent = 'TARGET AWAY';
+      cornerStage.textContent = '';
+    }
+  }
+
   function loadStage(stageIndex){
+    setCinemaMode(false);
     clearTimers();
     state = 'idle';
     hideTarget();
@@ -246,7 +341,7 @@
       return;
     }
 
-    stageInfo.innerHTML = `<h2>${stage.name}</h2><p>${stage.instructions}</p>`;
+    stageInfo.innerHTML = `<h2>${stage.name}</h2><p>${stage.instructions.join('<br>')}</p>`;
     big.textContent='–';
     big.classList.remove('warning');
     big.classList.add('hidden');
@@ -255,6 +350,8 @@
     startBtn.textContent = `Start ${stage.name}`;
     startBtn.disabled = false;
     stopBtn.disabled = true;
+    instructorBtn.disabled = false;
+    memberBtn.disabled = false;
     status('Ready');
   }
 
@@ -295,11 +392,11 @@
   }
 
   function runSingleExposureStage(){
+    setCinemaMode(true);
     const stage = currentCourse[currentStageIndex];
     big.classList.remove('warning');
     audio();
     state='standby';
-    stageInfo.innerHTML = `<h2>${stage.name}</h2><p>...Standby...</p>`;
     status('Standby…');
     startBtn.disabled=true;
     stopBtn.disabled=false;
@@ -328,7 +425,7 @@
       loadStage(currentStageIndex + 1);
       return;
     }
-
+    setCinemaMode(true);
     const stage = currentCourse[currentStageIndex];
     big.classList.remove('warning');
     audio();
@@ -360,22 +457,44 @@
     }, randMs(4, 12));
   }
 
+  function playInstructionSlides(slides, onComplete){
+    const slide = slides.shift(); // Get the next slide
+    if(!slide){
+      onComplete(); // All slides shown, run the onComplete callback
+      return;
+    }
+    stageInfo.innerHTML = `<h2>${currentCourse[currentStageIndex].name}</h2><p>${slide}</p>`;
+    say(slide, () => playInstructionSlides(slides, onComplete));
+  }
+
   function start(){
     if(state!=='idle') return;
     const stage = currentCourse[currentStageIndex];
     if(!stage) return;
 
-    if(stage.type === 'multi_rep') {
-      runMultiRepStage(stage.reps);
-    } else {
-      runSingleExposureStage();
+    startBtn.disabled = true;
+    stopBtn.disabled = true;
+    instructorBtn.disabled = true;
+    memberBtn.disabled = true;
+
+    const slides = [...stage.instructions];
+
+    const startTheDrill = () => {
+      if(stage.type === 'multi_rep') {
+        runMultiRepStage(stage.reps);
+      } else {
+        runSingleExposureStage();
+      }
     }
+
+    playInstructionSlides(slides, startTheDrill);
   }
 
   startBtn.addEventListener('click', start);
   stopBtn .addEventListener('click', reset);
   document.addEventListener('keydown', e=>{
     if(e.code==='Space'){ e.preventDefault(); state==='idle' ? start() : reset(); }
+    if(e.code==='Escape'){ e.preventDefault(); reset(); }
   });
 
   loadStage(0);
