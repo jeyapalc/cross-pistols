@@ -304,6 +304,25 @@
     pBar.style.backgroundColor = pick.includes('green') ? '#2bd97f' : '#00aaff';
     img.src = pick; // relative path inside repo
     setFacing(true);
+    setTimeout(animatePaperFlap, 600); // 550ms for flip + 50ms buffer
+  }
+
+  function animatePaperFlap() {
+    let angle = (Math.random() * 0.5 + 0.5) * (Math.random() > 0.5 ? 1 : -1);
+    let delay = 0;
+
+    for (let i = 0; i < 5; i++) {
+      delay += Math.random() * 40 + 30;
+      const currentAngle = angle;
+      setTimeout(() => {
+        img.style.transform = `rotateZ(${currentAngle}deg)`;
+      }, delay);
+      angle *= -0.6 * (Math.random() * 0.4 + 0.8);
+    }
+
+    setTimeout(() => {
+      img.style.transform = `rotateZ(0deg)`;
+    }, delay + 100);
   }
 
   function setCinemaMode(active){
