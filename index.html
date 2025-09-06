@@ -46,12 +46,31 @@
   #stageInfo {
     padding: 0 1rem 1rem;
     text-align: center;
-    font-size: 1.1rem;
     color: #cfd6e1;
     transition: opacity .3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
   }
-  #stageInfo h2 { margin: 0 0 0.5rem; font-size: 1.5rem; color: var(--ui); }
-  #stageInfo p { margin: 0; }
+  #stageInfo h2 { margin: 0 0 1rem; font-size: 2rem; color: var(--ui); }
+  #stageInfo p { margin: 0; font-size: 20vh; line-height: 1; font-weight: 800; }
+
+  #continueScreen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0,0,0,0.7);
+    text-align: center;
+    z-index: 300;
+  }
+  #continueScreen h2 { font-size: 5rem; margin: 0; }
+  #continueScreen #continueTimer { font-size: 3rem; margin: 1rem; }
+  #continueScreen button { min-width: 120px; }
 
   body.cinema-active header button {
     opacity: 0.3;
@@ -101,7 +120,7 @@
     -webkit-text-stroke-color: #ff0000;
   }
   .hidden {
-    opacity: 0;
+    display: none !important;
   }
   #progressBar {
     position: fixed;
@@ -120,7 +139,7 @@
     transition:transform .55s cubic-bezier(.2,.7,.2,1);
   }
   .face{position:absolute;inset:0;display:grid;place-items:center;backface-visibility:hidden}
-  .back{transform:rotateY(180deg);color:#cfd6e1;font-weight:800;letter-spacing:.08em}
+  .back{transform:rotateY(180deg);}
   .away .flipper{transform:rotateY(180deg)}
   .facing .flipper{transform:rotateY(0deg)}
 
@@ -153,10 +172,18 @@
     <div class="turner away" id="turner">
       <div class="flipper" id="flipper">
         <div class="face front"><img id="targetImg" class="paper" alt="target"/></div>
-        <div class="face back">TARGET AWAY</div>
+        <div class="face back"></div>
       </div>
     </div>
   </section>
+  <div id="continueScreen" class="hidden">
+    <h2>CONTINUE?</h2>
+    <div id="continueTimer">8</div>
+    <div>
+      <button id="continueYes">Yes</button>
+      <button id="continueNo">No</button>
+    </div>
+  </div>
 </main>
 
 <div id="progressBar"></div>
@@ -172,31 +199,13 @@
   const INSTRUCTOR_COF = [
     {
       name: "Stage 1",
-      instructions: [
-        "STAGE 1",
-        "15m",
-        "22 sec time limit",
-        "Start holstered",
-        "String A: Draw, fire 4 standing",
-        "String B: Drop to kneel, fire 4 kneeling",
-        "8 rounds total"
-      ],
+      instructions: ["Stage 1", "15 meters", "From holster", "4 standing, 4 kneeling", "22 seconds", "Shooter be ready!"],
       parTime: 22,
       type: 'single_exposure'
     },
     {
       name: "Stage 2",
-      instructions: [
-        "STAGE 2",
-        "7m",
-        "8 sec time limit",
-        "Start high ready",
-        "Drill (Repeat 2x):",
-        "Fire 2 rounds",
-        "Reload",
-        "Fire 2 rounds",
-        "8 rounds total"
-      ],
+      instructions: ["Stage 2", "7 meters", "From high ready", "2 rounds, reload, 2 rounds", "8 seconds", "Shooter be ready!"],
       parTime: 8,
       type: 'reload_prompt',
       prompt_start: 5, // time remaining to start prompt
@@ -204,16 +213,7 @@
     },
     {
       name: "Stage 3",
-      instructions: [
-        "STAGE 3",
-        "5m",
-        "5 sec per rep",
-        "Start holstered",
-        "Drill (Repeat 3x):",
-        "Draw, fire 2 to centre mass",
-        "1 round to head",
-        "9 rounds total"
-      ],
+      instructions: ["Stage 3", "5 meters", "From holster", "2 centre mass, 1 head", "5 seconds per rep", "3 repetitions", "Shooter be ready!"],
       parTime: 5,
       reps: 3,
       delay_min: 3.5,
@@ -222,16 +222,7 @@
     },
     {
       name: "Stage 4",
-      instructions: [
-        "STAGE 4",
-        "25m",
-        "45 sec time limit",
-        "Start holstered",
-        "String A: 3 rounds standing, no cover",
-        "String B: 3 rounds standing, from cover",
-        "String C: 3 rounds kneeling, from cover",
-        "9 rounds total"
-      ],
+      instructions: ["Stage 4", "25 meters", "From holster", "3 standing", "3 standing, from cover", "3 kneeling, from cover", "45 seconds", "Shooter be ready!"],
       parTime: 45,
       type: 'single_exposure'
     }
@@ -251,8 +242,12 @@
   const stageInfo = document.getElementById('stageInfo');
   const cornerStage = document.getElementById('cornerStage');
   const backFace = flipper.querySelector('.back');
+  const continueScreen = document.getElementById('continueScreen');
+  const continueTimer = document.getElementById('continueTimer');
+  const continueYes = document.getElementById('continueYes');
+  const continueNo = document.getElementById('continueNo');
 
-  let state='idle', dTO=null, pTO=null, tAF=null, endTime=0, ac=null;
+  let state='idle', dTO=null, pTO=null, tAF=null, endTime=0, ac=null, continueTO=null, continueIV=null;
   let currentCourse = INSTRUCTOR_COF;
   let currentStageIndex = 0;
 
@@ -391,6 +386,35 @@
     tAF = requestAnimationFrame(tick);
   }
 
+  function showContinueScreen(){
+    let count = 8;
+    continueTimer.textContent = count;
+    continueScreen.classList.remove('hidden');
+
+    const advance = () => {
+      clearInterval(continueIV);
+      clearTimeout(continueTO);
+      continueScreen.classList.add('hidden');
+      loadStage(currentStageIndex + 1);
+    }
+
+    const repeat = () => {
+      clearInterval(continueIV);
+      clearTimeout(continueTO);
+      continueScreen.classList.add('hidden');
+      loadStage(currentStageIndex);
+    }
+
+    continueTO = setTimeout(advance, 8000);
+    continueIV = setInterval(()=>{
+      count--;
+      if(count >= 0) continueTimer.textContent = count;
+    }, 1000);
+
+    continueYes.onclick = advance;
+    continueNo.onclick = repeat;
+  }
+
   function runSingleExposureStage(){
     setCinemaMode(true);
     const stage = currentCourse[currentStageIndex];
@@ -415,7 +439,7 @@
         endBeep();
         hideTarget();
         status('DOWN.');
-        setTimeout(()=>loadStage(currentStageIndex + 1), 1200);
+        showContinueScreen();
       }, stage.parTime*1000);
     }, randMs(4, 12));
   }
@@ -451,8 +475,12 @@
         status('DOWN.');
 
         const delay = randMs(stage.delay_min, stage.delay_max);
-        stageInfo.innerHTML = `<h2>${stage.name}</h2><p>Next rep in ${(delay/1000).toFixed(1)} seconds...</p>`;
-        setTimeout(() => runMultiRepStage(repsRemaining - 1), delay);
+        if (repsRemaining > 1) {
+          stageInfo.innerHTML = `<h2>${stage.name}</h2><p>Next rep in ${(delay/1000).toFixed(1)} seconds...</p>`;
+          setTimeout(() => runMultiRepStage(repsRemaining - 1), delay);
+        } else {
+          showContinueScreen();
+        }
       }, stage.parTime * 1000);
     }, randMs(4, 12));
   }
