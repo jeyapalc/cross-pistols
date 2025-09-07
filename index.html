@@ -127,7 +127,21 @@
     transition: opacity .3s;
   }
   #continueScreen h2 { font-size: 5rem; margin: 0; font-family: 'Archivo Black', sans-serif; }
-  #continueScreen #continueTimer { font-size: 3rem; margin: 1rem; font-family: 'Share Tech Mono', 'Courier New', monospace;}
+  .continue-bar-container {
+    width: 80%;
+    max-width: 400px;
+    height: 10px;
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 5px;
+    margin: 1rem 0;
+  }
+  #continueBar {
+    width: 100%;
+    height: 100%;
+    background-color: var(--accent);
+    border-radius: 5px;
+    transition: width 10s linear;
+  }
   #continueScreen button { min-width: 120px; }
 
   #stage{
@@ -214,10 +228,12 @@
   </section>
   <div id="continueScreen" class="hidden">
     <h2>CONTINUE?</h2>
-    <div id="continueTimer">8</div>
+    <div class="continue-bar-container">
+      <div id="continueBar"></div>
+    </div>
     <div>
-      <button id="continueYes">Yes</button>
-      <button id="continueNo">No</button>
+      <button id="continueReshoot">Reshoot</button>
+      <button id="continueNext">Next Stage</button>
     </div>
   </div>
 </main>
@@ -243,9 +259,9 @@
   const reloadPrompt = stageInfo.querySelector('h2');
   const cornerStage = document.getElementById('cornerStage');
   const continueScreen = document.getElementById('continueScreen');
-  const continueTimer = document.getElementById('continueTimer');
-  const continueYes = document.getElementById('continueYes');
-  const continueNo = document.getElementById('continueNo');
+  const continueBar = document.getElementById('continueBar');
+  const continueReshoot = document.getElementById('continueReshoot');
+  const continueNext = document.getElementById('continueNext');
   const stageSelectBtn = document.getElementById('stage-select-btn');
   const stageSelectDropdown = document.getElementById('stage-select-dropdown');
 
@@ -334,8 +350,9 @@
 
   function startDrill() {
     const stage = currentCourse[currentStageIndex];
+    let initialPick = null;
 
-    const runSingleDrill = (isFirstDrill) => {
+    const runSingleDrill = (isFirstDrill, drillPick) => {
       state = 'standby';
 
       const delay = (stage.type === 'multi_rep' && !isFirstDrill)
@@ -346,10 +363,15 @@
         if (state !== 'standby') return;
 
         setCinemaMode(true);
-        const pick = TARGETS[Math.floor(Math.random() * TARGETS.length)];
+        const pick = drillPick || TARGETS[Math.floor(Math.random() * TARGETS.length)];
         img.src = pick;
         pBar.style.backgroundColor = pick.includes('green') ? '#2bd97f' : '#00aaff';
-        endTime = Date.now() + stage.parTime * 1000;
+
+        const currentParTime = (stage.name === "Stage 3")
+          ? (Math.random() * (11 - 8) + 8)
+          : stage.parTime;
+
+        endTime = Date.now() + currentParTime * 1000;
         state = 'presenting';
         setFacing(true);
         // setTimeout(animatePaperFlap, 550);
@@ -364,23 +386,26 @@
             repCounter++;
             if (repCounter < stage.reps) {
               cornerStage.textContent = `${stage.name} - Rep ${repCounter + 1}/${stage.reps}`;
-              runSingleDrill(false);
+              setCinemaMode(false);
+              stageInfoP.textContent = "Shooter be ready!";
+              runSingleDrill(false, drillPick);
             } else {
               showContinueScreen();
             }
           } else {
             showContinueScreen();
           }
-        }, stage.parTime * 1000);
+        }, currentParTime * 1000);
       }, delay);
     };
 
     if (stage.type === 'multi_rep') {
       repCounter = 0;
       cornerStage.textContent = `${stage.name} - Rep 1/${stage.reps}`;
+      initialPick = TARGETS[Math.floor(Math.random() * TARGETS.length)];
     }
 
-    runSingleDrill(true);
+    runSingleDrill(true, initialPick);
   }
 
   function tick(){
@@ -419,27 +444,45 @@
   }
 
   function showContinueScreen(){
-    let count = 8;
-    continueTimer.textContent = count;
+    // Reset the bar to full width instantly before showing
+    continueBar.style.transition = 'none';
+    continueBar.style.width = '100%';
+
     continueScreen.classList.remove('hidden');
 
+    // Force a reflow to ensure the transition is applied correctly after reset
+    void continueBar.offsetWidth;
+
+    // Set the dynamic button text
+    const nextStage = currentCourse[currentStageIndex + 1];
+    if (nextStage) {
+      continueNext.textContent = `Stage ${currentStageIndex + 2}`;
+      continueNext.disabled = false;
+    } else {
+      continueNext.textContent = 'Course Complete';
+      continueNext.disabled = true;
+    }
+
     const cleanup = () => {
-      clearInterval(continueIV);
       clearTimeout(continueTO);
       continueScreen.classList.add('hidden');
+      // Restore transition for next time
+      continueBar.style.transition = 'width 10s linear';
     };
 
     const advance = () => { cleanup(); loadStage(currentStageIndex + 1); };
     const repeat = () => { cleanup(); loadStage(currentStageIndex); };
 
-    continueTO = setTimeout(advance, 8000);
-    continueIV = setInterval(()=>{
-      count--;
-      if(count >= 0) continueTimer.textContent = count;
-    }, 1000);
+    // Set the 10-second timeout to advance
+    continueTO = setTimeout(advance, 10000);
 
-    continueYes.onclick = advance;
-    continueNo.onclick = repeat;
+    // Trigger the bar animation
+    setTimeout(() => {
+        continueBar.style.width = '0%';
+    }, 10); // Small delay to ensure the transition kicks in
+
+    continueNext.onclick = advance;
+    continueReshoot.onclick = repeat;
   }
 
   function start(){
@@ -475,6 +518,21 @@
   document.addEventListener('keydown', e => {
     if (e.code === 'Space') { e.preventDefault(); state === 'idle' ? start() : reset(); }
     if (e.code === 'Escape') { e.preventDefault(); reset(); }
+
+    if (state === 'idle') {
+      if (e.code === 'ArrowUp' || e.code === 'ArrowLeft') {
+        e.preventDefault();
+        if (currentStageIndex > 0) {
+          loadStage(currentStageIndex - 1);
+        }
+      }
+      if (e.code === 'ArrowDown' || e.code === 'ArrowRight') {
+        e.preventDefault();
+        if (currentStageIndex < currentCourse.length - 1) {
+          loadStage(currentStageIndex + 1);
+        }
+      }
+    }
   });
 
   loadStage(0);
