@@ -80,6 +80,8 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    z-index: 2;
+    pointer-events: none;
  main
   }
   #stageInfo p { margin: 0; font-size: 20vh; line-height: 1; font-weight: 800; font-family: 'Archivo Black', sans-serif;}
@@ -96,6 +98,9 @@
   body.cinema-active #courseSelection button {
     opacity: 0.3;
     pointer-events: none;
+  }
+  body.cinema-active #stage {
+    opacity: 1;
   }
   #cornerStage {
     position: fixed;
@@ -128,6 +133,8 @@
   #stage{
     position:relative;width:min(66vmin,88vw);height:min(86vmin,82vh);
     display:grid;place-items:center;perspective:2200px;transform-style:preserve-3d;
+    opacity: 0;
+    transition: opacity .3s;
   }
   #big{
     position:absolute;
@@ -217,7 +224,7 @@
 <div id="progressBar"></div>
 <script>
 (()=> {
-  const TARGETS = ["green.png", "blue.png"];
+  const TARGETS = ["images/green.png", "images/blue.png"];
   const INSTRUCTOR_COF = [
     { name: "Stage 1", instructions: ["Stage 1", "15 meters", "From holster", "4 standing, 4 kneeling", "22 seconds", "Shooter be ready!"], parTime: 22, type: 'single_exposure' },
     { name: "Stage 2", instructions: ["Stage 2", "7 meters", "From high ready", "2 rounds, reload, 2 rounds", "8 seconds", "Shooter be ready!"], parTime: 8, type: 'reload_prompt', prompt_start: 5, prompt_end: 3 },
