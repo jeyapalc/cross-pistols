@@ -166,9 +166,11 @@
     text-shadow:none;
     z-index:0;
     transition: color .3s, text-shadow .3s, opacity .3s, filter .3s;
-    filter: blur(1px);
   }
-  #big.warning { -webkit-text-stroke: 1px #ff0000; }
+  #big.warning {
+    -webkit-text-stroke: 1px #ff0000;
+    color: transparent;
+  }
   .hidden { display: none !important; }
   #progressBar {
     position: fixed;
@@ -443,6 +445,7 @@
   }
 
   function showContinueScreen(){
+    document.getElementById('stage').style.opacity = 0;
     // Reset the bar to full width instantly before showing
     continueBar.style.transition = 'none';
     continueBar.style.width = '100%';
@@ -531,6 +534,17 @@
         if (currentStageIndex < currentCourse.length - 1) {
           loadStage(currentStageIndex + 1);
         }
+      }
+    }
+
+    if (!continueScreen.classList.contains('hidden')) {
+      if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        document.getElementById('continueReshoot').click();
+      }
+      if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        document.getElementById('continueNext').click();
       }
     }
   });
