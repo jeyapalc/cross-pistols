@@ -227,7 +227,6 @@
     </div>
   </section>
   <div id="continueScreen" class="hidden">
-    <h2>CONTINUE?</h2>
     <div class="continue-bar-container">
       <div id="continueBar"></div>
     </div>
@@ -244,7 +243,7 @@
   const INSTRUCTOR_COF = [
     { name: "Stage 1", instructions: ["Stage 1", "15 meters", "From holster", "4 standing, 4 kneeling", "22 seconds", "Shooter be ready!"], parTime: 22, type: 'single_exposure' },
     { name: "Stage 2", instructions: ["Stage 2", "7 meters", "From high ready", "2 rounds, reload, 2 rounds", "8 seconds", "Shooter be ready!"], parTime: 8, type: 'reload_prompt', prompt_start: 5, prompt_end: 3 },
-    { name: "Stage 3", instructions: ["Stage 3", "5 meters", "From holster", "2 centre mass, 1 head", "5 seconds per rep", "3 repetitions", "Shooter be ready!"], parTime: 5, reps: 3, delay_min: 3.5, delay_max: 6, type: 'multi_rep' },
+    { name: "Stage 3", instructions: ["Stage 3", "5 meters", "From holster", "2 centre mass, 1 head", "5 seconds per rep", "3 repetitions", "Shooter be ready!"], parTime: 5, reps: 3, delay_min: 14, delay_max: 22, type: 'multi_rep' },
     { name: "Stage 4", instructions: ["Stage 4", "25 meters", "From holster", "3 standing", "3 standing, from cover", "3 kneeling, from cover", "45 seconds", "Shooter be ready!"], parTime: 45, type: 'single_exposure' }
   ];
 
@@ -453,10 +452,13 @@
     // Force a reflow to ensure the transition is applied correctly after reset
     void continueBar.offsetWidth;
 
+    // Restore the transition property so the animation works
+    continueBar.style.transition = 'width 10s linear';
+
     // Set the dynamic button text
     const nextStage = currentCourse[currentStageIndex + 1];
     if (nextStage) {
-      continueNext.textContent = `Stage ${currentStageIndex + 2}`;
+      continueNext.textContent = nextStage.name;
       continueNext.disabled = false;
     } else {
       continueNext.textContent = 'Course Complete';
@@ -466,8 +468,6 @@
     const cleanup = () => {
       clearTimeout(continueTO);
       continueScreen.classList.add('hidden');
-      // Restore transition for next time
-      continueBar.style.transition = 'width 10s linear';
     };
 
     const advance = () => { cleanup(); loadStage(currentStageIndex + 1); };
