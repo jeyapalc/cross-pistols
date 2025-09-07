@@ -10,10 +10,6 @@
 <style>
   :root{
     --bg:#0e1117; --ui:#e7ebf2; --accent:#2bd97f;
-    --count-opacity:.20;
-    --par-seconds:22;
-    --delay-min:4;
-    --delay-max:12;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -40,11 +36,43 @@
     background:var(--accent);color:#062f1d;border:0;padding:.8rem 1rem;
     border-radius:.8rem;font-weight:800;cursor:pointer
   }
+  .start-container { position: relative; display: flex; }
+  #start { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  #stage-select-btn {
+    background: var(--accent);
+    color: #062f1d;
+    border: 0;
+    padding: .8rem .5rem;
+    border-left: 1px solid rgba(6,47,29,0.3);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+  #stage-select-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--accent);
+    border-radius: .5rem;
+    padding: .5rem;
+    z-index: 1000;
+    min-width: 200px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  }
+  #stage-select-dropdown a {
+    display: block;
+    padding: .5rem 1rem;
+    color: #062f1d;
+    text-decoration: none;
+    border-radius: .3rem;
+  }
+  #stage-select-dropdown a:hover { background-color: rgba(6,47,29,0.2); }
   button:disabled{opacity:.55;cursor:not-allowed}
   #status{font-weight:800}
   main{flex:1;display:grid;place-items:center}
   #stageInfo {
-    padding: 0 1rem 1rem;
+    position: fixed;
+    inset: 0;
+    padding: 1rem;
     text-align: center;
     color: #cfd6e1;
     transition: opacity .3s;
@@ -52,31 +80,22 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100%;
   }
-  #stageInfo h2 { margin: 0 0 1rem; font-size: 2rem; color: var(--ui); }
-  #stageInfo p { margin: 0; font-size: 20vh; line-height: 1; font-weight: 800; }
-
-  #continueScreen {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(0,0,0,0.7);
-    text-align: center;
-    z-index: 300;
+  #stageInfo p { margin: 0; font-size: 20vh; line-height: 1; font-weight: 800; font-family: 'Archivo Black', sans-serif;}
+  #stageInfo h2 {
+    display: none;
+    position: absolute;
+    font-size: 15vh;
+    color: #ff3c3c;
+    text-shadow: 0 0 15px rgba(255,0,0,0.7);
+    font-family: 'Archivo Black', sans-serif;
   }
-  #continueScreen h2 { font-size: 5rem; margin: 0; }
-  #continueScreen #continueTimer { font-size: 3rem; margin: 1rem; }
-  #continueScreen button { min-width: 120px; }
 
-  body.cinema-active header button {
+  body.cinema-active header button,
+  body.cinema-active #courseSelection button {
     opacity: 0.3;
     pointer-events: none;
   }
-
   #cornerStage {
     position: fixed;
     bottom: 1rem;
@@ -89,14 +108,26 @@
     transition: opacity .3s;
     z-index: 200;
   }
+  #continueScreen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0,0,0,0.7);
+    text-align: center;
+    z-index: 300;
+    transition: opacity .3s;
+  }
+  #continueScreen h2 { font-size: 5rem; margin: 0; font-family: 'Archivo Black', sans-serif; }
+  #continueScreen #continueTimer { font-size: 3rem; margin: 1rem; font-family: 'Share Tech Mono', 'Courier New', monospace;}
+  #continueScreen button { min-width: 120px; }
 
-
-  /* Stage with depth so timer looks projected on the floor */
   #stage{
     position:relative;width:min(66vmin,88vw);height:min(86vmin,82vh);
     display:grid;place-items:center;perspective:2200px;transform-style:preserve-3d;
   }
-  /* Floor timer */
   #big{
     position:absolute;
     top: 50%;
@@ -115,13 +146,8 @@
     transition: color .3s, text-shadow .3s, opacity .3s, filter .3s;
     filter: blur(1px);
   }
-  #big.warning {
-    -webkit-text-stroke-width: 1px;
-    -webkit-text-stroke-color: #ff0000;
-  }
-  .hidden {
-    display: none !important;
-  }
+  #big.warning { -webkit-text-stroke: 1px #ff0000; }
+  .hidden { display: none !important; }
   #progressBar {
     position: fixed;
     bottom: 0;
@@ -132,41 +158,43 @@
     transition: width 0.1s linear, background-color 0.3s ease;
     z-index: 200;
   }
-
   .turner{width:100%;height:100%;position:relative;z-index:1;perspective:1400px}
   .flipper{
     position:absolute;inset:0;transform-style:preserve-3d;
     transition:transform .55s cubic-bezier(.2,.7,.2,1);
   }
   .face{position:absolute;inset:0;display:grid;place-items:center;backface-visibility:hidden}
-  .back{transform:rotateY(180deg);}
+  .back{transform:rotateY(180deg); background-color: #1a1a1a;}
   .away .flipper{transform:rotateY(180deg)}
   .facing .flipper{transform:rotateY(0deg)}
-
   .paper{
     max-width:92%;max-height:96%;
     filter:drop-shadow(0 28px 60px rgba(0,0,0,.55));
     transform-origin:50% 10%;
   }
-  .sway{animation:sway 3.6s ease-in-out infinite alternate}
-  @keyframes sway{0%{transform:rotateZ(-.7deg)}100%{transform:rotateZ(.7deg)}}
 </style>
 </head>
-<body class="away">
+<body>
 <header>
   <div id="courseSelection">
     <button id="instructorBtn" class="active">Instructor</button>
     <button id="memberBtn">Regular Member</button>
   </div>
-  <button id="start">Start Course</button>
+  <div class="start-container">
+    <button id="start">Start Course</button>
+    <button id="stage-select-btn">▾</button>
+    <div id="stage-select-dropdown" class="hidden"></div>
+  </div>
   <button id="stop" disabled>Stop/Reset</button>
   <label><input type="checkbox" id="mute">Mute beeps</label>
   <div id="status" aria-live="polite">Idle</div>
 </header>
-
 <main>
   <div id="cornerStage"></div>
-  <div id="stageInfo"></div>
+  <div id="stageInfo">
+    <p></p>
+    <h2>RELOAD!</h2>
+  </div>
   <section id="stage" aria-label="training lane">
     <div id="big" class="hidden">–</div>
     <div class="turner away" id="turner">
@@ -185,223 +213,200 @@
     </div>
   </div>
 </main>
-
 <div id="progressBar"></div>
-
 <script>
 (()=> {
-  /* Point to PNGs you uploaded in /assets */
-  const TARGETS = [
-    "green.png",
-    "blue.png"
-  ];
-
+  const TARGETS = ["green.png", "blue.png"];
   const INSTRUCTOR_COF = [
-    {
-      name: "Stage 1",
-      instructions: ["Stage 1", "15 meters", "From holster", "4 standing, 4 kneeling", "22 seconds", "Shooter be ready!"],
-      parTime: 22,
-      type: 'single_exposure'
-    },
-    {
-      name: "Stage 2",
-      instructions: ["Stage 2", "7 meters", "From high ready", "2 rounds, reload, 2 rounds", "8 seconds", "Shooter be ready!"],
-      parTime: 8,
-      type: 'reload_prompt',
-      prompt_start: 5, // time remaining to start prompt
-      prompt_end: 3    // time remaining to end prompt
-    },
-    {
-      name: "Stage 3",
-      instructions: ["Stage 3", "5 meters", "From holster", "2 centre mass, 1 head", "5 seconds per rep", "3 repetitions", "Shooter be ready!"],
-      parTime: 5,
-      reps: 3,
-      delay_min: 3.5,
-      delay_max: 6,
-      type: 'multi_rep'
-    },
-    {
-      name: "Stage 4",
-      instructions: ["Stage 4", "25 meters", "From holster", "3 standing", "3 standing, from cover", "3 kneeling, from cover", "45 seconds", "Shooter be ready!"],
-      parTime: 45,
-      type: 'single_exposure'
-    }
+    { name: "Stage 1", instructions: ["Stage 1", "15 meters", "From holster", "4 standing, 4 kneeling", "22 seconds", "Shooter be ready!"], parTime: 22, type: 'single_exposure' },
+    { name: "Stage 2", instructions: ["Stage 2", "7 meters", "From high ready", "2 rounds, reload, 2 rounds", "8 seconds", "Shooter be ready!"], parTime: 8, type: 'reload_prompt', prompt_start: 5, prompt_end: 3 },
+    { name: "Stage 3", instructions: ["Stage 3", "5 meters", "From holster", "2 centre mass, 1 head", "5 seconds per rep", "3 repetitions", "Shooter be ready!"], parTime: 5, reps: 3, delay_min: 3.5, delay_max: 6, type: 'multi_rep' },
+    { name: "Stage 4", instructions: ["Stage 4", "25 meters", "From holster", "3 standing", "3 standing, from cover", "3 kneeling, from cover", "45 seconds", "Shooter be ready!"], parTime: 45, type: 'single_exposure' }
   ];
 
   const startBtn = document.getElementById('start');
   const stopBtn  = document.getElementById('stop');
-  const muteChk  = document.getElementById('mute');
-  const statusEl = document.getElementById('status');
-  const turner   = document.getElementById('turner');
-  const flipper  = document.getElementById('flipper');
   const img      = document.getElementById('targetImg');
   const big      = document.getElementById('big');
   const pBar     = document.getElementById('progressBar');
-  const instructorBtn = document.getElementById('instructorBtn');
-  const memberBtn = document.getElementById('memberBtn');
+  const turner   = document.getElementById('turner');
   const stageInfo = document.getElementById('stageInfo');
+  const stageInfoP = stageInfo.querySelector('p');
+  const reloadPrompt = stageInfo.querySelector('h2');
   const cornerStage = document.getElementById('cornerStage');
-  const backFace = flipper.querySelector('.back');
   const continueScreen = document.getElementById('continueScreen');
   const continueTimer = document.getElementById('continueTimer');
   const continueYes = document.getElementById('continueYes');
   const continueNo = document.getElementById('continueNo');
+  const stageSelectBtn = document.getElementById('stage-select-btn');
+  const stageSelectDropdown = document.getElementById('stage-select-dropdown');
 
-  let state='idle', dTO=null, pTO=null, tAF=null, endTime=0, ac=null, continueTO=null, continueIV=null;
+  let state='idle', dTO=null, pTO=null, tAF=null, endTime=0;
   let currentCourse = INSTRUCTOR_COF;
   let currentStageIndex = 0;
+  let continueTO = null, continueIV = null, repCounter = 0;
 
-  function status(t){ statusEl.textContent=t; }
-  function audio(){ if(!ac){ ac=new (window.AudioContext||window.webkitAudioContext)(); } if(ac.state==='suspended') ac.resume(); }
-  function beep(f=1000,ms=160){
-    if(muteChk.checked||!ac) return;
-    const o=ac.createOscillator(), g=ac.createGain();
-    o.type='square'; o.frequency.value=f; o.connect(g); g.connect(ac.destination);
-    const n=ac.currentTime;
-    g.gain.setValueAtTime(0.0001,n);
-    g.gain.exponentialRampToValueAtTime(0.32,n+.01);
-    g.gain.exponentialRampToValueAtTime(0.0001,n+ms/1000);
-    o.start(n); o.stop(n+ms/1000+.02);
+  function populateStageDropdown() {
+    stageSelectDropdown.innerHTML = '';
+    currentCourse.forEach((stage, index) => {
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = stage.name;
+      a.dataset.stageIndex = index;
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        loadStage(index);
+        stageSelectDropdown.classList.add('hidden');
+      });
+      stageSelectDropdown.appendChild(a);
+    });
   }
-  const startBeep=()=>beep(1200,180);
-  const endBeep  =()=>{beep(880,220); setTimeout(()=>beep(660,180),180);};
+
+  function clearTimers(){ [dTO,pTO,continueTO,continueIV].forEach(t=>t&&clearTimeout(t)); if(tAF) cancelAnimationFrame(tAF); dTO=pTO=tAF=continueTO=continueIV=null; }
+  function setFacing(isFacing){ turner.classList.toggle('facing', isFacing); turner.classList.toggle('away', !isFacing); }
+
+  function setCinemaMode(active) {
+    document.body.classList.toggle('cinema-active', active);
+    stageInfo.style.opacity = active ? 0 : 1;
+    cornerStage.style.opacity = active ? 1 : 0;
+  }
+
+  function animatePaperFlap() {
+    const paper = document.getElementById('targetImg');
+    setTimeout(() => { paper.style.transform = 'rotate(1.5deg)'; }, 0);
+    setTimeout(() => { paper.style.transform = 'rotate(-1deg)'; }, 80);
+    setTimeout(() => { paper.style.transform = 'rotate(0.5deg)'; }, 160);
+    setTimeout(() => { paper.style.transform = ''; }, 240);
+  }
+
+  function loadStage(stageIndex) {
+    clearTimers();
+    setCinemaMode(false);
+    reloadPrompt.style.display = 'none';
+    state = 'idle';
+    currentStageIndex = stageIndex;
+    const stage = currentCourse[currentStageIndex];
+
+    if (!stage) {
+      stageInfoP.textContent = 'Course Complete';
+      startBtn.disabled = true;
+      stopBtn.disabled = true;
+      return;
+    }
+
+    stageInfoP.textContent = stage.instructions[0];
+    startBtn.textContent = `Start ${stage.name}`;
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    big.classList.add('hidden');
+    pBar.style.width = '100%';
+    pBar.style.backgroundColor = 'transparent';
+    setFacing(false);
+    cornerStage.textContent = '';
+  }
 
   function say(text, onEndCallback){
     try {
       const u = new SpeechSynthesisUtterance(text);
       u.rate = 1; u.pitch = 1; u.volume = .9;
-
-      let callbackFired = false;
-      const onEnd = () => {
-        if (callbackFired) return;
-        callbackFired = true;
-        if(onEndCallback) onEndCallback();
-      };
-
+      let cbFired = false;
+      const onEnd = () => { if (!cbFired) { cbFired = true; if(onEndCallback) onEndCallback(); } };
       u.onend = onEnd;
-      speechSynthesis.cancel();
       speechSynthesis.speak(u);
-
-      // Failsafe timeout in case onend doesn't fire in headless/test env
       setTimeout(onEnd, 2000);
-    } catch(e) {
-      console.error("Speech synthesis failed.", e);
-      // If speech API is totally broken, fire callback immediately
-      if(onEndCallback) setTimeout(onEndCallback, 100);
-    }
-  }
-  function clearTimers(){ [dTO,pTO].forEach(t=>t&&clearTimeout(t)); if(tAF) cancelAnimationFrame(tAF); dTO=pTO=tAF=null; }
-
-  function setFacing(isFacing){
-    flipper.style.transform = isFacing ? 'rotateY(0deg)' : 'rotateY(180deg)';
-    turner.classList.toggle('facing', isFacing);
-    turner.classList.toggle('away',   !isFacing);
-    img.classList.toggle('sway', isFacing);
-  }
-  function hideTarget(){ setFacing(false); }
-  function showTarget(){
-    const pick = TARGETS[(Math.random()*1e9|0)%TARGETS.length];
-    pBar.style.backgroundColor = pick.includes('green') ? '#2bd97f' : '#00aaff';
-    img.src = pick; // relative path inside repo
-    setFacing(true);
-    setTimeout(animatePaperFlap, 600); // 550ms for flip + 50ms buffer
+    } catch(e) { if(onEndCallback) setTimeout(onEndCallback, 100); }
   }
 
-  function animatePaperFlap() {
-    let angle = (Math.random() * 0.5 + 0.5) * (Math.random() > 0.5 ? 1 : -1);
-    let delay = 0;
-
-    for (let i = 0; i < 5; i++) {
-      delay += Math.random() * 40 + 30;
-      const currentAngle = angle;
-      setTimeout(() => {
-        img.style.transform = `rotateZ(${currentAngle}deg)`;
-      }, delay);
-      angle *= -0.6 * (Math.random() * 0.4 + 0.8);
-    }
-
-    setTimeout(() => {
-      img.style.transform = `rotateZ(0deg)`;
-    }, delay + 100);
+  function playInstructionSlides(slides, onComplete){
+    const slide = slides.shift();
+    if(!slide){ onComplete(); return; }
+    stageInfoP.textContent = slide;
+    say(slide, () => playInstructionSlides(slides, onComplete));
   }
 
-  function setCinemaMode(active){
-    document.body.classList.toggle('cinema-active', active);
-    stageInfo.style.opacity = active ? 0 : 1;
-    cornerStage.style.opacity = active ? 1 : 0;
-    if(active){
-      cornerStage.textContent = currentCourse[currentStageIndex].name;
-      backFace.textContent = '';
-    } else {
-      backFace.textContent = 'TARGET AWAY';
-      cornerStage.textContent = '';
-    }
-  }
-
-  function loadStage(stageIndex){
-    setCinemaMode(false);
-    clearTimers();
-    state = 'idle';
-    hideTarget();
-
-    currentStageIndex = stageIndex;
+  function startDrill() {
     const stage = currentCourse[currentStageIndex];
 
-    if(!stage){
-      stageInfo.innerHTML = `<h2>Course Complete!</h2>`;
-      startBtn.disabled = true;
-      stopBtn.disabled = true;
-      status('Done');
-      return;
+    const runSingleDrill = (isFirstDrill) => {
+      state = 'standby';
+      setCinemaMode(true);
+
+      const delay = (stage.type === 'multi_rep' && !isFirstDrill)
+        ? (Math.random() * (stage.delay_max - stage.delay_min) + stage.delay_min) * 1000
+        : (Math.random() * 8000 + 4000);
+
+      dTO = setTimeout(() => {
+        if (state !== 'standby') return;
+
+        const pick = TARGETS[Math.floor(Math.random() * TARGETS.length)];
+        img.src = pick;
+        pBar.style.backgroundColor = pick.includes('green') ? '#2bd97f' : '#00aaff';
+        endTime = Date.now() + stage.parTime * 1000;
+        state = 'presenting';
+        setFacing(true);
+        setTimeout(animatePaperFlap, 550);
+        big.classList.remove('hidden');
+        tick();
+
+        pTO = setTimeout(() => {
+          setFacing(false);
+          big.classList.add('hidden');
+
+          if (stage.type === 'multi_rep') {
+            repCounter++;
+            if (repCounter < stage.reps) {
+              cornerStage.textContent = `${stage.name} - Rep ${repCounter + 1}/${stage.reps}`;
+              runSingleDrill(false);
+            } else {
+              showContinueScreen();
+            }
+          } else {
+            showContinueScreen();
+          }
+        }, stage.parTime * 1000);
+      }, delay);
+    };
+
+    if (stage.type === 'multi_rep') {
+      repCounter = 0;
+      cornerStage.textContent = `${stage.name} - Rep 1/${stage.reps}`;
     }
 
-    stageInfo.innerHTML = `<h2>${stage.name}</h2><p>${stage.instructions.join('<br>')}</p>`;
-    big.textContent='–';
-    big.classList.remove('warning');
-    big.classList.add('hidden');
-    pBar.style.width = '100%';
-    pBar.style.backgroundColor = 'transparent';
-    startBtn.textContent = `Start ${stage.name}`;
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
-    instructorBtn.disabled = false;
-    memberBtn.disabled = false;
-    status('Ready');
+    runSingleDrill(true);
   }
 
-  function reset(){
-    loadStage(0);
-  }
-
-  const randMs=(a,b)=>Math.round((Math.random()*(b-a)+a)*1000);
   function tick(){
     const stage = currentCourse[currentStageIndex];
     const remaining = endTime - Date.now();
-    const total = stage.parTime * 1000;
+
+    if (stage.type === 'reload_prompt') {
+      const remainingSeconds = remaining / 1000;
+      if (remainingSeconds < stage.prompt_start && remainingSeconds > stage.prompt_end) {
+        reloadPrompt.style.display = 'block';
+      } else {
+        reloadPrompt.style.display = 'none';
+      }
+    }
 
     if(remaining <= 0){
       big.textContent = '00.00';
       pBar.style.width = '0%';
+      reloadPrompt.style.display = 'none';
+      big.classList.remove('warning');
       return;
     }
 
-    const seconds = remaining / 1000;
-    big.textContent = seconds.toFixed(2).padStart(5, '0');
-    pBar.style.width = `${(remaining/total)*100}%`;
+    const seconds = Math.floor(remaining / 1000);
+    const hundredths = Math.floor((remaining % 1000) / 10);
+    big.textContent = `${seconds.toString().padStart(2, '0')}.${hundredths.toString().padStart(2, '0')}`;
 
-    if (remaining < total * 0.1) {
+    if (remaining < stage.parTime * 100) { // 10% of par time in ms
       big.classList.add('warning');
+    } else {
+      big.classList.remove('warning');
     }
 
-    if(stage.type === 'reload_prompt'){
-      const seconds_remaining = remaining / 1000;
-      if(seconds_remaining < stage.prompt_start && seconds_remaining > stage.prompt_end) {
-        statusEl.textContent = 'RELOAD!';
-      } else if (state === 'presenting') {
-        statusEl.textContent = 'UP!';
-      }
-    }
-
+    pBar.style.width = `${(remaining/(stage.parTime*1000))*100}%`;
     tAF = requestAnimationFrame(tick);
   }
 
@@ -410,19 +415,14 @@
     continueTimer.textContent = count;
     continueScreen.classList.remove('hidden');
 
-    const advance = () => {
+    const cleanup = () => {
       clearInterval(continueIV);
       clearTimeout(continueTO);
       continueScreen.classList.add('hidden');
-      loadStage(currentStageIndex + 1);
-    }
+    };
 
-    const repeat = () => {
-      clearInterval(continueIV);
-      clearTimeout(continueTO);
-      continueScreen.classList.add('hidden');
-      loadStage(currentStageIndex);
-    }
+    const advance = () => { cleanup(); loadStage(currentStageIndex + 1); };
+    const repeat = () => { cleanup(); loadStage(currentStageIndex); };
 
     continueTO = setTimeout(advance, 8000);
     continueIV = setInterval(()=>{
@@ -434,117 +434,43 @@
     continueNo.onclick = repeat;
   }
 
-  function runSingleExposureStage(){
-    setCinemaMode(true);
-    const stage = currentCourse[currentStageIndex];
-    big.classList.remove('warning');
-    audio();
-    state='standby';
-    status('Standby…');
-    startBtn.disabled=true;
-    stopBtn.disabled=false;
-
-    dTO = setTimeout(()=>{
-      if(state!=='standby') return;
-      endTime = Date.now() + stage.parTime * 1000;
-      big.classList.remove('hidden');
-      state='presenting';
-      startBeep();
-      showTarget();
-      status('UP!');
-      tick();
-
-      pTO = setTimeout(()=>{
-        endBeep();
-        hideTarget();
-        status('DOWN.');
-        showContinueScreen();
-      }, stage.parTime*1000);
-    }, randMs(4, 12));
-  }
-
-  function runMultiRepStage(repsRemaining){
-    if(repsRemaining <= 0) {
-      loadStage(currentStageIndex + 1);
-      return;
-    }
-    setCinemaMode(true);
-    const stage = currentCourse[currentStageIndex];
-    big.classList.remove('warning');
-    audio();
-    state='standby';
-    stageInfo.innerHTML = `<h2>${stage.name}</h2><p>Rep ${stage.reps - repsRemaining + 1} of ${stage.reps}</p><p>...Standby...</p>`;
-    status('Standby…');
-    startBtn.disabled=true;
-    stopBtn.disabled=false;
-
-    dTO = setTimeout(() => {
-      if (state !== 'standby') return;
-      endTime = Date.now() + stage.parTime * 1000;
-      big.classList.remove('hidden');
-      state = 'presenting';
-      startBeep();
-      showTarget();
-      status('UP!');
-      tick();
-
-      pTO = setTimeout(() => {
-        endBeep();
-        hideTarget();
-        status('DOWN.');
-
-        const delay = randMs(stage.delay_min, stage.delay_max);
-        if (repsRemaining > 1) {
-          stageInfo.innerHTML = `<h2>${stage.name}</h2><p>Next rep in ${(delay/1000).toFixed(1)} seconds...</p>`;
-          setTimeout(() => runMultiRepStage(repsRemaining - 1), delay);
-        } else {
-          showContinueScreen();
-        }
-      }, stage.parTime * 1000);
-    }, randMs(4, 12));
-  }
-
-  function playInstructionSlides(slides, onComplete){
-    const slide = slides.shift(); // Get the next slide
-    if(!slide){
-      onComplete(); // All slides shown, run the onComplete callback
-      return;
-    }
-    stageInfo.innerHTML = `<h2>${currentCourse[currentStageIndex].name}</h2><p>${slide}</p>`;
-    say(slide, () => playInstructionSlides(slides, onComplete));
-  }
-
   function start(){
-    if(state!=='idle') return;
+    if (state !== 'idle') return;
     const stage = currentCourse[currentStageIndex];
-    if(!stage) return;
+    if (!stage) return;
 
     startBtn.disabled = true;
-    stopBtn.disabled = true;
-    instructorBtn.disabled = true;
-    memberBtn.disabled = true;
+    stopBtn.disabled = false;
 
     const slides = [...stage.instructions];
-
-    const startTheDrill = () => {
-      if(stage.type === 'multi_rep') {
-        runMultiRepStage(stage.reps);
-      } else {
-        runSingleExposureStage();
-      }
-    }
-
-    playInstructionSlides(slides, startTheDrill);
+    const stageTitle = slides.shift();
+    cornerStage.textContent = stageTitle;
+    playInstructionSlides(slides, startDrill);
   }
 
+  function reset(){ loadStage(0); }
+
   startBtn.addEventListener('click', start);
-  stopBtn .addEventListener('click', reset);
-  document.addEventListener('keydown', e=>{
-    if(e.code==='Space'){ e.preventDefault(); state==='idle' ? start() : reset(); }
-    if(e.code==='Escape'){ e.preventDefault(); reset(); }
+  stopBtn.addEventListener('click', reset);
+
+  stageSelectBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    stageSelectDropdown.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', () => {
+    if (!stageSelectDropdown.classList.contains('hidden')) {
+      stageSelectDropdown.classList.add('hidden');
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space') { e.preventDefault(); state === 'idle' ? start() : reset(); }
+    if (e.code === 'Escape') { e.preventDefault(); reset(); }
   });
 
   loadStage(0);
+  populateStageDropdown();
 })();
 </script>
 </body>
