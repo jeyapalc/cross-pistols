@@ -249,6 +249,21 @@
     { name: "Stage 4", instructions: ["Stage 4", "25 meters", "From holster", "3 standing", "3 standing, from cover", "3 kneeling, from cover", "45 seconds", "Shooter be ready!"], parTime: 45, type: 'single_exposure' }
   ];
 
+  const REGULAR_MEMBER_COF = [
+    { name: "Stage 1", instructions: ["Stage 1", "15 meters", "From holster", "4 rounds STANDING", "Toggle to kneeling (K)", "4 rounds KNEELING", "30 seconds", "Shooter be ready!"], parTime: 30, type: 'single_exposure' },
+    { name: "Stage 2", instructions: ["Stage 2", "7 meters", "Police challenge!", "From holster, 2 rounds loaded", "2 rounds, emergency reload, 2 rounds", "Repeat sequence once", "10 seconds total", "Shooter be ready!"], parTime: 10, type: 'reload_prompt', prompt_start: 7, prompt_end: 4 },
+    {
+      name: "Stage 3",
+      instructions: ["Stage 3", "5 meters", "3 timed blocks", "Shooter be ready!"],
+      type: 'hard_splits',
+      blocks: [
+        { parTime: 4, instructions: ["Block 1: 1 CM, 1 HEAD"], startPosition: 'holster' },
+        { parTime: 5, instructions: ["Block 2: 2 CM, 1 HEAD"], startPosition: 'holster' },
+        { parTime: 5, instructions: ["Block 3: 2 CM, 2 HEAD"], startPosition: 'high_ready' }
+      ]
+    }
+  ];
+
   const startBtn = document.getElementById('start');
   const stopBtn  = document.getElementById('stop');
   const img      = document.getElementById('targetImg');
@@ -265,6 +280,8 @@
   const continueNext = document.getElementById('continueNext');
   const stageSelectBtn = document.getElementById('stage-select-btn');
   const stageSelectDropdown = document.getElementById('stage-select-dropdown');
+  const instructorBtn = document.getElementById('instructorBtn');
+  const memberBtn = document.getElementById('memberBtn');
 
   let state='idle', dTO=null, pTO=null, tAF=null, endTime=0;
   let currentCourse = INSTRUCTOR_COF;
@@ -353,60 +370,102 @@
     const stage = currentCourse[currentStageIndex];
     let initialPick = null;
 
-    const runSingleDrill = (isFirstDrill, drillPick) => {
-      state = 'standby';
+    if (stage.type === 'hard_splits') {
+      let currentBlockIndex = 0;
+      const runNextBlock = () => {
+        if (currentBlockIndex >= stage.blocks.length) {
+          showContinueScreen();
+          return;
+        }
+        const block = stage.blocks[currentBlockIndex];
+        state = 'standby';
+        const slides = [...block.instructions];
+        if (block.startPosition) {
+            slides.unshift(`Start from ${block.startPosition}`);
+        }
+        cornerStage.textContent = `${stage.name} - Block ${currentBlockIndex + 1}/${stage.blocks.length}`;
+        playInstructionSlides(slides, () => {
+            const delay = 2000;
+            dTO = setTimeout(() => {
+                if (state !== 'standby') return;
+                setCinemaMode(true);
+                const pick = TARGETS[Math.floor(Math.random() * TARGETS.length)];
+                img.src = pick;
+                pBar.style.backgroundColor = pick.includes('green') ? '#2bd97f' : '#00aaff';
+                endTime = Date.now() + block.parTime * 1000;
+                state = 'presenting';
+                setFacing(true);
+                big.classList.remove('hidden');
+                const originalParTime = stage.parTime;
+                stage.parTime = block.parTime;
+                tick();
+                pTO = setTimeout(() => {
+                    setFacing(false);
+                    big.classList.add('hidden');
+                    stage.parTime = originalParTime;
+                    currentBlockIndex++;
+                    setCinemaMode(false);
+                    runNextBlock();
+                }, block.parTime * 1000);
+            }, delay);
+        });
+      };
+      runNextBlock();
+    } else {
+      const runSingleDrill = (isFirstDrill, drillPick) => {
+        state = 'standby';
 
-      const delay = (stage.type === 'multi_rep' && !isFirstDrill)
-        ? (Math.random() * (stage.delay_max - stage.delay_min) + stage.delay_min) * 1000
-        : (Math.random() * 8000 + 4000);
+        const delay = (stage.type === 'multi_rep' && !isFirstDrill)
+          ? (Math.random() * (stage.delay_max - stage.delay_min) + stage.delay_min) * 1000
+          : (Math.random() * 8000 + 4000);
 
-      dTO = setTimeout(() => {
-        if (state !== 'standby') return;
+        dTO = setTimeout(() => {
+          if (state !== 'standby') return;
 
-        setCinemaMode(true);
-        const pick = drillPick || TARGETS[Math.floor(Math.random() * TARGETS.length)];
-        img.src = pick;
-        pBar.style.backgroundColor = pick.includes('green') ? '#2bd97f' : '#00aaff';
+          setCinemaMode(true);
+          const pick = drillPick || TARGETS[Math.floor(Math.random() * TARGETS.length)];
+          img.src = pick;
+          pBar.style.backgroundColor = pick.includes('green') ? '#2bd97f' : '#00aaff';
 
-        const currentParTime = (stage.name === "Stage 3")
-          ? (Math.random() * (11 - 8) + 8)
-          : stage.parTime;
+          const currentParTime = (stage.name === "Stage 3")
+            ? (Math.random() * (11 - 8) + 8)
+            : stage.parTime;
 
-        endTime = Date.now() + currentParTime * 1000;
-        state = 'presenting';
-        setFacing(true);
-        // setTimeout(animatePaperFlap, 550);
-        big.classList.remove('hidden');
-        tick();
+          endTime = Date.now() + currentParTime * 1000;
+          state = 'presenting';
+          setFacing(true);
+          big.classList.remove('hidden');
+          tick();
 
-        pTO = setTimeout(() => {
-          setFacing(false);
-          big.classList.add('hidden');
+          pTO = setTimeout(() => {
+            setFacing(false);
+            big.classList.add('hidden');
 
-          if (stage.type === 'multi_rep') {
-            repCounter++;
-            if (repCounter < stage.reps) {
-              cornerStage.textContent = `${stage.name} - Rep ${repCounter + 1}/${stage.reps}`;
-              setCinemaMode(false);
-              stageInfoP.textContent = "Shooter be ready!";
-              runSingleDrill(false, drillPick);
+            if (stage.type === 'multi_rep') {
+              repCounter++;
+              if (repCounter < stage.reps) {
+                cornerStage.textContent = `${stage.name} - Rep ${repCounter + 1}/${stage.reps}`;
+                setCinemaMode(false);
+                stageInfoP.textContent = "Shooter be ready!";
+                runSingleDrill(false, drillPick);
+              } else {
+                showContinueScreen();
+              }
             } else {
               showContinueScreen();
             }
-          } else {
-            showContinueScreen();
-          }
-        }, currentParTime * 1000);
-      }, delay);
-    };
+          }, currentParTime * 1000);
+        }, delay);
+      };
 
-    if (stage.type === 'multi_rep') {
-      repCounter = 0;
-      cornerStage.textContent = `${stage.name} - Rep 1/${stage.reps}`;
-      initialPick = TARGETS[Math.floor(Math.random() * TARGETS.length)];
+      if (stage.type === 'multi_rep') {
+        repCounter = 0;
+        cornerStage.textContent = `${stage.name} - Rep 1/${stage.reps}`;
+        initialPick = TARGETS[Math.floor(Math.random() * TARGETS.length)];
+      }
+
+      runSingleDrill(true, initialPick);
     }
-
-    runSingleDrill(true, initialPick);
   }
 
   function tick(){
@@ -503,6 +562,24 @@
   }
 
   function reset(){ loadStage(0); }
+
+  instructorBtn.addEventListener('click', () => {
+    if (currentCourse === INSTRUCTOR_COF) return;
+    currentCourse = INSTRUCTOR_COF;
+    instructorBtn.classList.add('active');
+    memberBtn.classList.remove('active');
+    reset();
+    populateStageDropdown();
+  });
+
+  memberBtn.addEventListener('click', () => {
+    if (currentCourse === REGULAR_MEMBER_COF) return;
+    currentCourse = REGULAR_MEMBER_COF;
+    memberBtn.classList.add('active');
+    instructorBtn.classList.remove('active');
+    reset();
+    populateStageDropdown();
+  });
 
   startBtn.addEventListener('click', start);
   stopBtn.addEventListener('click', reset);
