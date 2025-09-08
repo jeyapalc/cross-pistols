@@ -6,7 +6,7 @@
 <title>Cross Pistols Trainer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Share+Tech+Mono&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0e1117; --ui:#e7ebf2; --accent:#2bd97f;
@@ -84,7 +84,79 @@
     pointer-events: none;
  main
   }
-  #stageInfo p { margin: 0; font-size: 20vh; line-height: 1; font-weight: 800; font-family: 'Archivo Black', sans-serif;}
+  #stageInfo p {
+    /* Base styles for instruction text */
+    margin: 0;
+    font-size: 10vh; /* A more reasonable default for instructions */
+    line-height: 1.2;
+    font-weight: 800;
+    font-family: 'Archivo Black', sans-serif;
+  }
+  #stageText {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 15vh;
+    text-align: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    color: var(--ui);
+  }
+  #stageInfo p.stage-number-bg {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 60vh;
+    font-weight: 900;
+    text-align: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    color: transparent; /* No fill */
+    -webkit-text-stroke-width: 4px;
+    -webkit-text-stroke-color: #2BF97F;
+    text-shadow: 0 0 10px rgba(43, 217, 127, 0.7), 0 0 20px rgba(43, 217, 127, 0.5);
+  }
+  #figure {
+    position: fixed;
+    right: 1rem;
+    bottom: 0;
+    max-height: 80vh;
+    max-width: 40vw;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity .3s ease;
+    pointer-events: none;
+  }
+  #figure.visible {
+    opacity: 1;
+  }
+  .bullet-hole {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: black;
+    border-radius: 50%;
+    border: 2px solid #333;
+    box-shadow: 0 0 5px rgba(0,0,0,0.8);
+    z-index: 10;
+  }
+  #bullet-hole-1 {
+    top: 50%;
+    left: 48%;
+    transform: translate(-50%, -50%);
+  }
+  #bullet-hole-2 {
+    top: 52%;
+    left: 52%;
+    transform: translate(-50%, -50%);
+  }
+  #bullet-hole-3 { /* The headshot */
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
   #stageInfo h2 {
     display: none;
     position: absolute;
@@ -150,6 +222,32 @@
     opacity: 0;
     transition: opacity .3s;
   }
+  #ring-timer {
+    width: 60vmin;
+    height: 60vmin;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  #ring-timer.visible {
+    opacity: 1;
+  }
+  #ring-timer::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    height: 90%;
+    background-color: var(--bg);
+    border-radius: 50%;
+  }
   #big{
     position:absolute;
     top: 50%;
@@ -157,7 +255,7 @@
     transform: translate(-50%, -50%);
     font-family: 'Archivo Black', sans-serif;
     font-weight:900;
-    font-size:min(108vmin, 84vh);
+    font-size: 40vmin;
     line-height:.8;
     letter-spacing:-.03em;
     color:rgba(60, 60, 60, 0.3);
@@ -217,9 +315,12 @@
   <div id="cornerStage"></div>
   <div id="stageInfo">
     <p></p>
+    <div id="stageText" class="hidden">STAGE</div>
     <h2>RELOAD!</h2>
   </div>
+  <img id="figure" alt="Shooter stance">
   <section id="stage" aria-label="training lane">
+    <div id="ring-timer"></div>
     <div id="big" class="hidden">–</div>
     <div class="turner away" id="turner">
       <div class="flipper" id="flipper">
@@ -227,6 +328,9 @@
         <div class="face back"></div>
       </div>
     </div>
+    <div id="bullet-hole-1" class="bullet-hole hidden"></div>
+    <div id="bullet-hole-2" class="bullet-hole hidden"></div>
+    <div id="bullet-hole-3" class="bullet-hole hidden"></div>
   </section>
   <div id="continueScreen" class="hidden">
     <div class="continue-bar-container">
@@ -242,16 +346,22 @@
 <script>
 (()=> {
   const TARGETS = ["images/green_peach_bg.png", "images/blue_peach_bg.png"];
+  const POSTURE_IMAGES = {
+    holster: "images/From_Holster.png",
+    high_ready: "images/High Ready.png",
+    standing: "images/Standing.png",
+    kneeling: "images/Kneeling.png"
+  };
   const INSTRUCTOR_COF = [
-    { name: "Stage 1", instructions: ["Stage 1", "15 meters", "From holster", "4 standing, 4 kneeling", "22 seconds", "Shooter be ready!"], parTime: 22, type: 'single_exposure' },
-    { name: "Stage 2", instructions: ["Stage 2", "7 meters", "From high ready", "2 rounds, reload, 2 rounds", "8 seconds", "Shooter be ready!"], parTime: 8, type: 'reload_prompt', prompt_start: 5, prompt_end: 3 },
-    { name: "Stage 3", instructions: ["Stage 3", "5 meters", "From holster", "2 centre mass, 1 head", "5 seconds per rep", "3 repetitions", "Shooter be ready!"], parTime: 5, reps: 3, delay_min: 14, delay_max: 22, type: 'multi_rep' },
+    { name: "Stage 1", instructions: ["Stage 1", "15 meters", "From holster", "4 standing", "4 kneeling", "22 seconds", "Shooter be ready!"], parTime: 22, type: 'single_exposure' },
+    { name: "Stage 2", instructions: ["Stage 2", "7 meters", "From high ready", "2 rounds", "RELOAD", "2 rounds", "8 seconds", "Shooter be ready!"], parTime: 8, type: 'reload_prompt', prompt_start: 5, prompt_end: 3 },
+    { name: "Stage 3", instructions: ["Stage 3", "5 meters", "From holster", "2 centre mass", "1 head", "5 seconds per rep", "3 repetitions", "Shooter be ready!"], parTime: 5, reps: 3, delay_min: 14, delay_max: 22, type: 'multi_rep' },
     { name: "Stage 4", instructions: ["Stage 4", "25 meters", "From holster", "3 standing", "3 standing, from cover", "3 kneeling, from cover", "45 seconds", "Shooter be ready!"], parTime: 45, type: 'single_exposure' }
   ];
 
   const REGULAR_MEMBER_COF = [
     { name: "Stage 1", instructions: ["Stage 1", "15 meters", "From holster", "4 rounds STANDING", "Toggle to kneeling (K)", "4 rounds KNEELING", "30 seconds", "Shooter be ready!"], parTime: 30, type: 'single_exposure' },
-    { name: "Stage 2", instructions: ["Stage 2", "7 meters", "Police challenge!", "From holster, 2 rounds loaded", "2 rounds, emergency reload, 2 rounds", "Repeat sequence once", "10 seconds total", "Shooter be ready!"], parTime: 10, type: 'reload_prompt', prompt_start: 7, prompt_end: 4 },
+    { name: "Stage 2", instructions: ["Stage 2", "7 meters", "Police challenge!", "From holster, 2 rounds loaded", "2 rounds", "emergency reload", "2 rounds", "Repeat sequence once", "10 seconds total", "Shooter be ready!"], parTime: 10, type: 'reload_prompt', prompt_start: 7, prompt_end: 4 },
     {
       name: "Stage 3",
       instructions: ["Stage 3", "5 meters", "3 timed blocks", "Shooter be ready!"],
@@ -272,6 +382,7 @@
   const turner   = document.getElementById('turner');
   const stageInfo = document.getElementById('stageInfo');
   const stageInfoP = stageInfo.querySelector('p');
+  const stageText = document.getElementById('stageText');
   const reloadPrompt = stageInfo.querySelector('h2');
   const cornerStage = document.getElementById('cornerStage');
   const continueScreen = document.getElementById('continueScreen');
@@ -282,6 +393,8 @@
   const stageSelectDropdown = document.getElementById('stage-select-dropdown');
   const instructorBtn = document.getElementById('instructorBtn');
   const memberBtn = document.getElementById('memberBtn');
+  const figure = document.getElementById('figure');
+  const ringTimer = document.getElementById('ring-timer');
 
   let state='idle', dTO=null, pTO=null, tAF=null, endTime=0;
   let currentCourse = INSTRUCTOR_COF;
@@ -307,10 +420,20 @@
   function clearTimers(){ [dTO,pTO,continueTO,continueIV].forEach(t=>t&&clearTimeout(t)); if(tAF) cancelAnimationFrame(tAF); dTO=pTO=tAF=continueTO=continueIV=null; }
   function setFacing(isFacing){ turner.classList.toggle('facing', isFacing); turner.classList.toggle('away', !isFacing); }
 
+  function hideBulletHoles() {
+    for (let i = 1; i <= 3; i++) {
+      const hole = document.getElementById(`bullet-hole-${i}`);
+      if (hole) hole.classList.add('hidden');
+    }
+  }
+
   function setCinemaMode(active) {
     document.body.classList.toggle('cinema-active', active);
     stageInfo.style.opacity = active ? 0 : 1;
     cornerStage.style.opacity = active ? 1 : 0;
+    if (active) {
+      figure.classList.remove('visible');
+    }
   }
 
   function animatePaperFlap() {
@@ -323,7 +446,9 @@
 
   function loadStage(stageIndex) {
     clearTimers();
+    hideBulletHoles();
     setCinemaMode(false);
+    figure.classList.remove('visible');
     reloadPrompt.style.display = 'none';
     state = 'idle';
     currentStageIndex = stageIndex;
@@ -336,7 +461,11 @@
       return;
     }
 
-    stageInfoP.textContent = stage.instructions[0];
+    const stageNumber = stage.name.replace('Stage ', '');
+    stageInfoP.textContent = stageNumber;
+    stageInfoP.classList.add('stage-number-bg');
+    stageText.classList.remove('hidden');
+
     startBtn.textContent = `Start ${stage.name}`;
     startBtn.disabled = false;
     stopBtn.disabled = true;
@@ -360,9 +489,29 @@
   }
 
   function playInstructionSlides(slides, onComplete){
+    if (stageInfoP.classList.contains('stage-number-bg')) {
+      stageInfoP.classList.remove('stage-number-bg');
+      stageInfoP.textContent = '';
+      stageText.classList.add('hidden');
+    }
+
     const slide = slides.shift();
     if(!slide){ onComplete(); return; }
     stageInfoP.textContent = slide;
+
+    const slideText = slide.toLowerCase();
+    let postureFound = null;
+
+    if (slideText.includes('holster')) postureFound = 'holster';
+    else if (slideText.includes('high ready')) postureFound = 'high_ready';
+    else if (slideText.includes('standing')) postureFound = 'standing';
+    else if (slideText.includes('kneeling')) postureFound = 'kneeling';
+
+    if (postureFound) {
+      figure.src = POSTURE_IMAGES[postureFound];
+      figure.classList.add('visible');
+    }
+
     say(slide, () => playInstructionSlides(slides, onComplete));
   }
 
@@ -396,12 +545,14 @@
                 state = 'presenting';
                 setFacing(true);
                 big.classList.remove('hidden');
+                ringTimer.classList.add('visible');
                 const originalParTime = stage.parTime;
                 stage.parTime = block.parTime;
                 tick();
                 pTO = setTimeout(() => {
                     setFacing(false);
                     big.classList.add('hidden');
+                    ringTimer.classList.remove('visible');
                     stage.parTime = originalParTime;
                     currentBlockIndex++;
                     setCinemaMode(false);
@@ -414,6 +565,7 @@
     } else {
       const runSingleDrill = (isFirstDrill, drillPick) => {
         state = 'standby';
+        hideBulletHoles();
 
         const delay = (stage.type === 'multi_rep' && !isFirstDrill)
           ? (Math.random() * (stage.delay_max - stage.delay_min) + stage.delay_min) * 1000
@@ -427,19 +579,19 @@
           img.src = pick;
           pBar.style.backgroundColor = pick.includes('green') ? '#2bd97f' : '#00aaff';
 
-          const currentParTime = (stage.name === "Stage 3")
-            ? (Math.random() * (11 - 8) + 8)
-            : stage.parTime;
+          const currentParTime = stage.parTime;
 
           endTime = Date.now() + currentParTime * 1000;
           state = 'presenting';
           setFacing(true);
           big.classList.remove('hidden');
+          ringTimer.classList.add('visible');
           tick();
 
           pTO = setTimeout(() => {
             setFacing(false);
             big.classList.add('hidden');
+            ringTimer.classList.remove('visible');
 
             if (stage.type === 'multi_rep') {
               repCounter++;
@@ -481,6 +633,17 @@
       }
     }
 
+    if (stage.name === "Stage 3" && currentCourse === INSTRUCTOR_COF) {
+      const remainingSeconds = remaining / 1000;
+      const hole1 = document.getElementById('bullet-hole-1');
+      const hole2 = document.getElementById('bullet-hole-2');
+      const hole3 = document.getElementById('bullet-hole-3');
+
+      if (remainingSeconds < 3.5) hole1.classList.remove('hidden');
+      if (remainingSeconds < 3.2) hole2.classList.remove('hidden');
+      if (remainingSeconds < 1.5) hole3.classList.remove('hidden');
+    }
+
     if(remaining <= 0){
       big.textContent = '00.00';
       pBar.style.width = '0%';
@@ -500,6 +663,10 @@
     }
 
     pBar.style.width = `${(remaining/(stage.parTime*1000))*100}%`;
+
+    const remainingPercentage = (remaining / (stage.parTime * 1000)) * 100;
+    ringTimer.style.background = `conic-gradient(var(--accent) ${remainingPercentage}%, transparent 0)`;
+
     tAF = requestAnimationFrame(tick);
   }
 
