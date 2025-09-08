@@ -157,6 +157,53 @@
     left: 50%;
     transform: translate(-50%, -50%);
   }
+  @keyframes strobe {
+    50% { background-color: #900; }
+  }
+  body.reloading {
+    animation: strobe 0.2s infinite;
+  }
+  #stageInfo h2.reloading {
+    display: block;
+    font-size: 25vh;
+    color: white;
+    text-shadow: 0 0 20px #ff0000, 0 0 30px #ff0000;
+  }
+  @keyframes flipIn {
+    from {
+      transform: rotateX(-90deg);
+      opacity: 0;
+    }
+    to {
+      transform: rotateX(0deg);
+      opacity: 1;
+    }
+  }
+  #stageInfo p.flipping {
+    animation: flipIn 0.4s ease-in-out;
+  }
+  @keyframes knockOver {
+    0% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+    20% { transform: translate(-50%, -50%) rotate(-10deg); }
+    100% { transform: translate(-50%, 150%) rotate(90deg); opacity: 0; }
+  }
+  #stageText.knocked-over {
+    transform-origin: bottom center;
+    animation: knockOver 1s forwards ease-in;
+  }
+  #reshootHud {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid var(--accent);
+    padding: 1rem;
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    color: var(--accent);
+    width: 350px;
+    z-index: 400;
+    white-space: pre-wrap;
+  }
   #stageInfo h2 {
     display: none;
     position: absolute;
@@ -332,6 +379,7 @@
     <div id="bullet-hole-2" class="bullet-hole hidden"></div>
     <div id="bullet-hole-3" class="bullet-hole hidden"></div>
   </section>
+  <div id="reshootHud" class="hidden"></div>
   <div id="continueScreen" class="hidden">
     <div class="continue-bar-container">
       <div id="continueBar"></div>
@@ -339,6 +387,7 @@
     <div>
       <button id="continueReshoot">Reshoot</button>
       <button id="continueNext">Next Stage</button>
+      <button id="showInstructions" style="font-size: 0.8rem; padding: .5rem .8rem; margin-left: 1rem;">Show Instructions</button>
     </div>
   </div>
 </main>
@@ -389,6 +438,8 @@
   const continueBar = document.getElementById('continueBar');
   const continueReshoot = document.getElementById('continueReshoot');
   const continueNext = document.getElementById('continueNext');
+  const showInstructions = document.getElementById('showInstructions');
+  const reshootHud = document.getElementById('reshootHud');
   const stageSelectBtn = document.getElementById('stage-select-btn');
   const stageSelectDropdown = document.getElementById('stage-select-dropdown');
   const instructorBtn = document.getElementById('instructorBtn');
@@ -498,6 +549,10 @@
     const slide = slides.shift();
     if(!slide){ onComplete(); return; }
     stageInfoP.textContent = slide;
+    stageInfoP.classList.add('flipping');
+    stageInfoP.addEventListener('animationend', () => {
+      stageInfoP.classList.remove('flipping');
+    }, { once: true });
 
     const slideText = slide.toLowerCase();
     let postureFound = null;
@@ -627,9 +682,11 @@
     if (stage.type === 'reload_prompt') {
       const remainingSeconds = remaining / 1000;
       if (remainingSeconds < stage.prompt_start && remainingSeconds > stage.prompt_end) {
-        reloadPrompt.style.display = 'block';
+        document.body.classList.add('reloading');
+        reloadPrompt.classList.add('reloading');
       } else {
-        reloadPrompt.style.display = 'none';
+        document.body.classList.remove('reloading');
+        reloadPrompt.classList.remove('reloading');
       }
     }
 
@@ -647,7 +704,8 @@
     if(remaining <= 0){
       big.textContent = '00.00';
       pBar.style.width = '0%';
-      reloadPrompt.style.display = 'none';
+      document.body.classList.remove('reloading');
+      reloadPrompt.classList.remove('reloading');
       big.classList.remove('warning');
       return;
     }
@@ -700,7 +758,7 @@
     };
 
     const advance = () => { cleanup(); loadStage(currentStageIndex + 1); };
-    const repeat = () => { cleanup(); loadStage(currentStageIndex); };
+    const repeat = () => { cleanup(); startDrill(); };
 
     // Set the 10-second timeout to advance
     continueTO = setTimeout(advance, 10000);
@@ -712,6 +770,18 @@
 
     continueNext.onclick = advance;
     continueReshoot.onclick = repeat;
+    showInstructions.onclick = () => {
+      const stage = currentCourse[currentStageIndex];
+      let hudText = `== ${stage.name} ==\n\n`;
+      hudText += stage.instructions.slice(1, -1).join('\n');
+
+      reshootHud.textContent = hudText;
+      reshootHud.classList.remove('hidden');
+
+      setTimeout(() => {
+        reshootHud.classList.add('hidden');
+      }, 5000);
+    };
   }
 
   function start(){
@@ -722,10 +792,17 @@
     startBtn.disabled = true;
     stopBtn.disabled = false;
 
-    const slides = [...stage.instructions];
-    const stageTitle = slides.shift();
-    cornerStage.textContent = stageTitle;
-    playInstructionSlides(slides, startDrill);
+    stageText.classList.add('knocked-over');
+    stageText.addEventListener('animationend', () => {
+      stageText.classList.remove('knocked-over');
+    }, { once: true });
+
+    setTimeout(() => {
+      const slides = [...stage.instructions];
+      const stageTitle = slides.shift();
+      cornerStage.textContent = stageTitle;
+      playInstructionSlides(slides, startDrill);
+    }, 500); // 0.5s delay
   }
 
   function reset(){ loadStage(0); }
