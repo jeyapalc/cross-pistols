@@ -71,39 +71,26 @@
   main{flex:1;display:grid;place-items:center}
   #stageInfo {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60vw;
-    height: 40vh;
-    background: rgba(0,0,0,0.75);
-    border: 2px solid var(--accent);
-    padding: 1.5rem;
-    z-index: 20;
-    color: white;
+    inset: 0;
+    padding: 1rem;
+    text-align: center;
+    color: #cfd6e1;
     transition: opacity .3s;
-    pointer-events: none;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    backdrop-filter: blur(5px);
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+    pointer-events: none;
+ main
   }
   #stageInfo p {
+    /* Base styles for instruction text */
     margin: 0;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 3vh;
-    line-height: 1.5;
-    font-weight: normal;
-    white-space: pre-wrap;
-    text-align: left;
-  }
-  @keyframes flash-red {
-    0%, 49% { color: #ff3c3c; text-shadow: 0 0 5px #ff3c3c, 0 0 12px #ff3c3c; }
-    50%, 100% { color: white; text-shadow: none; }
-  }
-  .flashing-red {
-    animation: flash-red 1.2s infinite steps(1, end);
+    font-size: 10vh; /* A more reasonable default for instructions */
+    line-height: 1.2;
+    font-weight: 800;
+    font-family: 'Archivo Black', sans-serif;
   }
   #stageText {
     font-family: 'Press Start 2P', cursive;
@@ -131,6 +118,20 @@
     -webkit-text-stroke-color: #2BF97F;
     text-shadow: 0 0 10px rgba(43, 217, 127, 0.7), 0 0 20px rgba(43, 217, 127, 0.5);
   }
+  #figure {
+    position: fixed;
+    right: 1rem;
+    bottom: 0;
+    max-height: 80vh;
+    max-width: 40vw;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity .3s ease;
+    pointer-events: none;
+  }
+  #figure.visible {
+    opacity: 1;
+  }
   .bullet-hole {
     position: absolute;
     width: 20px;
@@ -156,6 +157,18 @@
     left: 50%;
     transform: translate(-50%, -50%);
   }
+  @keyframes strobe {
+    50% { background-color: #900; }
+  }
+  body.reloading {
+    animation: strobe 0.2s infinite;
+  }
+  #stageInfo h2.reloading {
+    display: block;
+    font-size: 25vh;
+    color: white;
+    text-shadow: 0 0 20px #ff0000, 0 0 30px #ff0000;
+  }
   @keyframes flipIn {
     from {
       transform: rotateX(-90deg);
@@ -168,6 +181,15 @@
   }
   #stageInfo p.flipping {
     animation: flipIn 0.4s ease-in-out;
+  }
+  @keyframes knockOver {
+    0% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+    20% { transform: translate(-50%, -50%) rotate(-10deg); }
+    100% { transform: translate(-50%, 150%) rotate(90deg); opacity: 0; }
+  }
+  #stageText.knocked-over {
+    transform-origin: bottom center;
+    animation: knockOver 1s forwards ease-in;
   }
   #reshootHud {
     position: fixed;
@@ -281,7 +303,7 @@
     transform: translate(-50%, -50%);
     font-family: 'Archivo Black', sans-serif;
     font-weight:900;
-    font-size: 95vmin;
+    font-size: 40vmin;
     line-height:.8;
     letter-spacing:-.03em;
     color:rgba(60, 60, 60, 0.3);
@@ -344,6 +366,7 @@
     <div id="stageText" class="hidden">STAGE</div>
     <h2>RELOAD!</h2>
   </div>
+  <img id="figure" alt="Shooter stance">
   <section id="stage" aria-label="training lane">
     <div id="ring-timer"></div>
     <div id="big" class="hidden">–</div>
@@ -373,7 +396,12 @@
 <script>
 (()=> {
   const TARGETS = ["images/green.png", "images/blue.png"];
-
+  const POSTURE_IMAGES = {
+    holster: "images/From_Holster.png",
+    high_ready: "images/High Ready.png",
+    standing: "images/Standing.png",
+    kneeling: "images/Kneeling.png"
+  };
   const INSTRUCTOR_COF = [
     { name: "Stage 1", instructions: ["Stage 1", "15 meters", "From holster", "4 standing", "4 kneeling", "22 seconds", "Shooter be ready!"], parTime: 22, type: 'single_exposure' },
     { name: "Stage 2", instructions: ["Stage 2", "7 meters", "From high ready", "2 rounds", "RELOAD", "2 rounds", "8 seconds", "Shooter be ready!"], parTime: 8, type: 'reload_prompt', prompt_start: 5, prompt_end: 3 },
@@ -417,6 +445,7 @@
   const stageSelectDropdown = document.getElementById('stage-select-dropdown');
   const instructorBtn = document.getElementById('instructorBtn');
   const memberBtn = document.getElementById('memberBtn');
+  const figure = document.getElementById('figure');
   const ringTimer = document.getElementById('ring-timer');
 
   let state='idle', dTO=null, pTO=null, tAF=null, endTime=0;
@@ -454,6 +483,9 @@
     document.body.classList.toggle('cinema-active', active);
     stageInfo.style.opacity = active ? 0 : 1;
     cornerStage.style.opacity = active ? 1 : 0;
+    if (active) {
+      figure.classList.remove('visible');
+    }
   }
 
   function animatePaperFlap() {
@@ -468,6 +500,7 @@
     clearTimers();
     hideBulletHoles();
     setCinemaMode(false);
+    figure.classList.remove('visible');
     reloadPrompt.style.display = 'none';
     state = 'idle';
     currentStageIndex = stageIndex;
@@ -507,56 +540,35 @@
     } catch(e) { if(onEndCallback) setTimeout(onEndCallback, 100); }
   }
 
-  function playInstructionSlides(slides, onComplete) {
+  function playInstructionSlides(slides, onComplete){
     if (stageInfoP.classList.contains('stage-number-bg')) {
-        stageInfoP.classList.remove('stage-number-bg');
-        stageText.classList.add('hidden');
-    }
-    stageInfoP.innerHTML = ''; // Clear it
-
-    const lines = ['\\' + slides[0], ...slides.slice(1)];
-    const fullText = lines.join('\n');
-    const specialPhrase = "Shooter be ready!";
-    const specialStartIndex = fullText.indexOf(specialPhrase);
-    const specialEndIndex = specialStartIndex > -1 ? specialStartIndex + specialPhrase.length : -1;
-
-    // Create DOM nodes for the text parts
-    const textBeforeNode = document.createTextNode('');
-    stageInfoP.appendChild(textBeforeNode);
-
-    let flashingSpan;
-    if (specialStartIndex > -1) {
-        flashingSpan = document.createElement('span');
-        flashingSpan.className = 'flashing-red';
-        stageInfoP.appendChild(flashingSpan);
+      stageInfoP.classList.remove('stage-number-bg');
+      stageInfoP.textContent = '';
+      stageText.classList.add('hidden');
     }
 
-    const textAfterNode = document.createTextNode('');
-    if (specialStartIndex > -1) {
-        stageInfoP.appendChild(textAfterNode);
+    const slide = slides.shift();
+    if(!slide){ onComplete(); return; }
+    stageInfoP.textContent = slide;
+    stageInfoP.classList.add('flipping');
+    stageInfoP.addEventListener('animationend', () => {
+      stageInfoP.classList.remove('flipping');
+    }, { once: true });
+
+    const slideText = slide.toLowerCase();
+    let postureFound = null;
+
+    if (slideText.includes('holster')) postureFound = 'holster';
+    else if (slideText.includes('high ready')) postureFound = 'high_ready';
+    else if (slideText.includes('standing')) postureFound = 'standing';
+    else if (slideText.includes('kneeling')) postureFound = 'kneeling';
+
+    if (postureFound) {
+      figure.src = POSTURE_IMAGES[postureFound];
+      figure.classList.add('visible');
     }
 
-    let i = 0;
-    function typeChar() {
-        if (i >= fullText.length) {
-            if (onComplete) setTimeout(onComplete, 500); // Short delay after typing
-            return;
-        }
-
-        const char = fullText[i];
-
-        if (specialStartIndex === -1 || i < specialStartIndex) {
-            textBeforeNode.textContent += char;
-        } else if (i >= specialStartIndex && i < specialEndIndex) {
-            flashingSpan.textContent += char;
-        } else {
-            textAfterNode.textContent += char;
-        }
-
-        i++;
-        setTimeout(typeChar, 35);
-    }
-    typeChar();
+    say(slide, () => playInstructionSlides(slides, onComplete));
   }
 
   function startDrill() {
@@ -668,6 +680,17 @@
     const stage = currentCourse[currentStageIndex];
     const remaining = endTime - Date.now();
 
+    if (stage.type === 'reload_prompt') {
+      const remainingSeconds = remaining / 1000;
+      if (remainingSeconds < stage.prompt_start && remainingSeconds > stage.prompt_end) {
+        document.body.classList.add('reloading');
+        reloadPrompt.classList.add('reloading');
+      } else {
+        document.body.classList.remove('reloading');
+        reloadPrompt.classList.remove('reloading');
+      }
+    }
+
     if (stage.name === "Stage 3" && currentCourse === INSTRUCTOR_COF) {
       const remainingSeconds = remaining / 1000;
       const hole1 = document.getElementById('bullet-hole-1');
@@ -682,6 +705,8 @@
     if(remaining <= 0){
       big.textContent = '00.00';
       pBar.style.width = '0%';
+      document.body.classList.remove('reloading');
+      reloadPrompt.classList.remove('reloading');
       big.classList.remove('warning');
       return;
     }
@@ -767,6 +792,11 @@
 
     startBtn.disabled = true;
     stopBtn.disabled = false;
+
+    stageText.classList.add('knocked-over');
+    stageText.addEventListener('animationend', () => {
+      stageText.classList.remove('knocked-over');
+    }, { once: true });
 
     setTimeout(() => {
       const slides = [...stage.instructions];
