@@ -76,9 +76,9 @@
     transform: translate(-50%, -50%);
     width: 60vw;
     height: 40vh;
-    background: rgba(0,0,0,0.75);
-    border: 2px solid var(--accent);
-    padding: 1.5rem;
+    /* background: rgba(0,0,0,0.75); */
+    /* border: 2px solid var(--accent); */
+    /* padding: 1.5rem; */
     z-index: 20;
     color: white;
     transition: opacity .3s;
@@ -372,26 +372,24 @@
 <div id="progressBar"></div>
 <script>
 (()=> {
-  const TARGETS = ["images/green.png", "images/blue.png"];
-
   const INSTRUCTOR_COF = [
-    { name: "Stage 1", instructions: ["Stage 1", "15 meters", "From holster", "4 standing", "4 kneeling", "22 seconds", "Shooter be ready!"], parTime: 22, type: 'single_exposure' },
-    { name: "Stage 2", instructions: ["Stage 2", "7 meters", "From high ready", "2 rounds", "RELOAD", "2 rounds", "8 seconds", "Shooter be ready!"], parTime: 8, type: 'reload_prompt', prompt_start: 5, prompt_end: 3 },
-    { name: "Stage 3", instructions: ["Stage 3", "5 meters", "From holster", "2 centre mass", "1 head", "5 seconds per rep", "3 repetitions", "Shooter be ready!"], parTime: 5, reps: 3, delay_min: 14, delay_max: 22, type: 'multi_rep' },
-    { name: "Stage 4", instructions: ["Stage 4", "25 meters", "From holster", "3 standing", "3 standing, from cover", "3 kneeling, from cover", "45 seconds", "Shooter be ready!"], parTime: 45, type: 'single_exposure' }
+    { name: "Stage 1", target: "images/1-01-01 (1).svg", instructions: ["Stage 1", "15 meters", "From holster", "4 standing", "4 kneeling", "22 seconds", "Shooter be ready!"], parTime: 22, type: 'single_exposure' },
+    { name: "Stage 2", target: "images/2-01 (2).svg", instructions: ["Stage 2", "7 meters", "From high ready", "2 rounds", "RELOAD", "2 rounds", "8 seconds", "Shooter be ready!"], parTime: 8, type: 'reload_prompt', prompt_start: 5, prompt_end: 3 },
+    { name: "Stage 3", target: "images/1-01-01 (1).svg", instructions: ["Stage 3", "5 meters", "From holster", "2 centre mass", "1 head", "5 seconds per rep", "3 repetitions", "Shooter be ready!"], parTime: 5, reps: 3, delay_min: 14, delay_max: 22, type: 'multi_rep' },
+    { name: "Stage 4", target: "images/2-01 (2).svg", instructions: ["Stage 4", "25 meters", "From holster", "3 standing", "3 standing, from cover", "3 kneeling, from cover", "45 seconds", "Shooter be ready!"], parTime: 45, type: 'single_exposure' }
   ];
 
   const REGULAR_MEMBER_COF = [
-    { name: "Stage 1", instructions: ["Stage 1", "15 meters", "From holster", "4 rounds STANDING", "Toggle to kneeling (K)", "4 rounds KNEELING", "30 seconds", "Shooter be ready!"], parTime: 30, type: 'single_exposure' },
-    { name: "Stage 2", instructions: ["Stage 2", "7 meters", "Police challenge!", "From holster, 2 rounds loaded", "2 rounds", "emergency reload", "2 rounds", "Repeat sequence once", "10 seconds total", "Shooter be ready!"], parTime: 10, type: 'reload_prompt', prompt_start: 7, prompt_end: 4 },
+    { name: "Stage 1", target: "images/1-01-01 (1).svg", instructions: ["Stage 1", "15 meters", "From holster", "4 rounds STANDING", "Toggle to kneeling (K)", "4 rounds KNEELING", "30 seconds", "Shooter be ready!"], parTime: 30, type: 'single_exposure' },
+    { name: "Stage 2", target: "images/2-01 (2).svg", instructions: ["Stage 2", "7 meters", "Police challenge!", "From holster, 2 rounds loaded", "2 rounds", "emergency reload", "2 rounds", "Repeat sequence once", "10 seconds total", "Shooter be ready!"], parTime: 10, type: 'reload_prompt', prompt_start: 7, prompt_end: 4 },
     {
       name: "Stage 3",
       instructions: ["Stage 3", "5 meters", "3 timed blocks", "Shooter be ready!"],
       type: 'hard_splits',
       blocks: [
-        { parTime: 4, instructions: ["Block 1: 1 CM, 1 HEAD"], startPosition: 'holster' },
-        { parTime: 5, instructions: ["Block 2: 2 CM, 1 HEAD"], startPosition: 'holster' },
-        { parTime: 5, instructions: ["Block 3: 2 CM, 2 HEAD"], startPosition: 'high_ready' }
+        { parTime: 4, target: "images/1-01-01 (1).svg", instructions: ["Block 1: 1 CM, 1 HEAD"], startPosition: 'holster' },
+        { parTime: 5, target: "images/2-01 (2).svg", instructions: ["Block 2: 2 CM, 1 HEAD"], startPosition: 'holster' },
+        { parTime: 5, target: "images/1-01-01 (1).svg", instructions: ["Block 3: 2 CM, 2 HEAD"], startPosition: 'high_ready' }
       ]
     }
   ];
@@ -514,47 +512,21 @@
     }
     stageInfoP.innerHTML = ''; // Clear it
 
-    const lines = ['\\' + slides[0], ...slides.slice(1)];
-    const fullText = lines.join('\n');
-    const specialPhrase = "Shooter be ready!";
-    const specialStartIndex = fullText.indexOf(specialPhrase);
-    const specialEndIndex = specialStartIndex > -1 ? specialStartIndex + specialPhrase.length : -1;
+    const filteredSlides = slides.filter(slide => slide !== "Shooter be ready!");
+    const fullText = filteredSlides.join('\n');
 
-    // Create DOM nodes for the text parts
-    const textBeforeNode = document.createTextNode('');
-    stageInfoP.appendChild(textBeforeNode);
-
-    let flashingSpan;
-    if (specialStartIndex > -1) {
-        flashingSpan = document.createElement('span');
-        flashingSpan.className = 'flashing-red';
-        stageInfoP.appendChild(flashingSpan);
-    }
-
-    const textAfterNode = document.createTextNode('');
-    if (specialStartIndex > -1) {
-        stageInfoP.appendChild(textAfterNode);
-    }
+    const textNode = document.createTextNode('');
+    stageInfoP.appendChild(textNode);
 
     let i = 0;
     function typeChar() {
-        if (i >= fullText.length) {
-            if (onComplete) setTimeout(onComplete, 500); // Short delay after typing
-            return;
-        }
-
-        const char = fullText[i];
-
-        if (specialStartIndex === -1 || i < specialStartIndex) {
-            textBeforeNode.textContent += char;
-        } else if (i >= specialStartIndex && i < specialEndIndex) {
-            flashingSpan.textContent += char;
+        if (i < fullText.length) {
+            textNode.textContent += fullText.charAt(i);
+            i++;
+            setTimeout(typeChar, 35);
         } else {
-            textAfterNode.textContent += char;
+            if (onComplete) setTimeout(onComplete, 500);
         }
-
-        i++;
-        setTimeout(typeChar, 35);
     }
     typeChar();
   }
@@ -562,6 +534,55 @@
   function startDrill() {
     const stage = currentCourse[currentStageIndex];
     let initialPick = null;
+
+    const runSingleDrill = (isFirstDrill, drillPick, parTime) => {
+      state = 'standby';
+      hideBulletHoles();
+
+      const currentParTime = parTime || stage.parTime;
+      const delay = (stage.type === 'multi_rep' && !isFirstDrill)
+        ? (Math.random() * (stage.delay_max - stage.delay_min) + stage.delay_min) * 1000
+        : (Math.random() * 8000 + 4000);
+
+      dTO = setTimeout(() => {
+        if (state !== 'standby') return;
+
+        setCinemaMode(true);
+        const pick = drillPick || stage.target;
+        img.src = pick;
+        pBar.style.backgroundColor = 'var(--accent)';
+
+        endTime = Date.now() + currentParTime * 1000;
+        state = 'presenting';
+        setFacing(true);
+        big.classList.remove('hidden');
+        ringTimer.classList.add('visible');
+        tick();
+
+        pTO = setTimeout(() => {
+          setFacing(false);
+          big.classList.add('hidden');
+          ringTimer.classList.remove('visible');
+
+          if (stage.type === 'multi_rep') {
+            repCounter++;
+            if (repCounter < stage.reps) {
+              cornerStage.textContent = `${stage.name} - Rep ${repCounter + 1}/${stage.reps}`;
+              setCinemaMode(false);
+              stageInfoP.textContent = "Shooter be ready!";
+              runSingleDrill(false, drillPick);
+            } else {
+              showContinueScreen();
+            }
+          } else if (stage.type === 'hard_splits') {
+            // This is handled by runNextBlock
+          }
+          else {
+            showContinueScreen();
+          }
+        }, currentParTime * 1000);
+      }, delay);
+    };
 
     if (stage.type === 'hard_splits') {
       let currentBlockIndex = 0;
@@ -578,86 +599,20 @@
         }
         cornerStage.textContent = `${stage.name} - Block ${currentBlockIndex + 1}/${stage.blocks.length}`;
         playInstructionSlides(slides, () => {
-            const delay = 2000;
-            dTO = setTimeout(() => {
-                if (state !== 'standby') return;
-                setCinemaMode(true);
-                const pick = TARGETS[Math.floor(Math.random() * TARGETS.length)];
-                img.src = pick;
-                pBar.style.backgroundColor = pick.includes('green') ? '#2bd97f' : '#00aaff';
-                endTime = Date.now() + block.parTime * 1000;
-                state = 'presenting';
-                setFacing(true);
-                big.classList.remove('hidden');
-                ringTimer.classList.add('visible');
-                const originalParTime = stage.parTime;
-                stage.parTime = block.parTime;
-                tick();
-                pTO = setTimeout(() => {
-                    setFacing(false);
-                    big.classList.add('hidden');
-                    ringTimer.classList.remove('visible');
-                    stage.parTime = originalParTime;
-                    currentBlockIndex++;
-                    setCinemaMode(false);
-                    runNextBlock();
-                }, block.parTime * 1000);
-            }, delay);
+            runSingleDrill(true, block.target, block.parTime);
+            pTO = setTimeout(() => {
+                currentBlockIndex++;
+                setCinemaMode(false);
+                runNextBlock();
+            }, block.parTime * 1000 + 4000); // 4000 is the base random delay in runSingleDrill
         });
       };
       runNextBlock();
     } else {
-      const runSingleDrill = (isFirstDrill, drillPick) => {
-        state = 'standby';
-        hideBulletHoles();
-
-        const delay = (stage.type === 'multi_rep' && !isFirstDrill)
-          ? (Math.random() * (stage.delay_max - stage.delay_min) + stage.delay_min) * 1000
-          : (Math.random() * 8000 + 4000);
-
-        dTO = setTimeout(() => {
-          if (state !== 'standby') return;
-
-          setCinemaMode(true);
-          const pick = drillPick || TARGETS[Math.floor(Math.random() * TARGETS.length)];
-          img.src = pick;
-          pBar.style.backgroundColor = pick.includes('green') ? '#2bd97f' : '#00aaff';
-
-          const currentParTime = stage.parTime;
-
-          endTime = Date.now() + currentParTime * 1000;
-          state = 'presenting';
-          setFacing(true);
-          big.classList.remove('hidden');
-          ringTimer.classList.add('visible');
-          tick();
-
-          pTO = setTimeout(() => {
-            setFacing(false);
-            big.classList.add('hidden');
-            ringTimer.classList.remove('visible');
-
-            if (stage.type === 'multi_rep') {
-              repCounter++;
-              if (repCounter < stage.reps) {
-                cornerStage.textContent = `${stage.name} - Rep ${repCounter + 1}/${stage.reps}`;
-                setCinemaMode(false);
-                stageInfoP.textContent = "Shooter be ready!";
-                runSingleDrill(false, drillPick);
-              } else {
-                showContinueScreen();
-              }
-            } else {
-              showContinueScreen();
-            }
-          }, currentParTime * 1000);
-        }, delay);
-      };
-
       if (stage.type === 'multi_rep') {
         repCounter = 0;
         cornerStage.textContent = `${stage.name} - Rep 1/${stage.reps}`;
-        initialPick = TARGETS[Math.floor(Math.random() * TARGETS.length)];
+        initialPick = stage.target;
       }
 
       runSingleDrill(true, initialPick);
