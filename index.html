@@ -6,7 +6,7 @@
 <title>Cross Pistols Trainer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Share+Tech+Mono&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Share+Tech+Mono&family=Press+Start+2P&family=Silkscreen&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0e1117; --ui:#e7ebf2; --accent:#2bd97f;
@@ -89,14 +89,25 @@
     justify-content: flex-start;
     backdrop-filter: blur(5px);
   }
-  #stageInfo p {
-    margin: 0;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 3vh;
-    line-height: 1.5;
-    font-weight: normal;
+  #stageInfo {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    gap: 2rem;
+  }
+  #instructionText {
+    font-family: 'Silkscreen', sans-serif;
+    font-size: 3.5vh;
+    line-height: 1.6;
     white-space: pre-wrap;
     text-align: left;
+    flex-basis: 50%;
+  }
+  #readyText {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 6vh;
+    flex-basis: 50%;
+    text-align: center;
   }
   @keyframes flash-red {
     0%, 49% { color: #ff3c3c; text-shadow: 0 0 5px #ff3c3c, 0 0 12px #ff3c3c; }
@@ -340,7 +351,8 @@
 <main>
   <div id="cornerStage"></div>
   <div id="stageInfo">
-    <p></p>
+    <div id="instructionText"></div>
+    <div id="readyText"></div>
     <div id="stageText" class="hidden">STAGE</div>
     <h2>RELOAD!</h2>
   </div>
@@ -401,7 +413,8 @@
   const pBar     = document.getElementById('progressBar');
   const turner   = document.getElementById('turner');
   const stageInfo = document.getElementById('stageInfo');
-  const stageInfoP = stageInfo.querySelector('p');
+  const instructionText = document.getElementById('instructionText');
+  const readyText = document.getElementById('readyText');
   const stageText = document.getElementById('stageText');
   const reloadPrompt = stageInfo.querySelector('h2');
   const cornerStage = document.getElementById('cornerStage');
@@ -467,7 +480,7 @@
     hideBulletHoles();
     setCinemaMode(false);
     reloadPrompt.style.display = 'none';
-    stageInfoP.classList.remove('flashing-red');
+    readyText.classList.remove('flashing-red');
     state = 'idle';
     currentStageIndex = stageIndex;
     const stage = currentCourse[currentStageIndex];
@@ -480,8 +493,9 @@
     }
 
     const stageNumber = stage.name.replace('Stage ', '');
-    stageInfoP.textContent = stageNumber;
-    stageInfoP.classList.add('stage-number-bg');
+    instructionText.textContent = stageNumber;
+    instructionText.classList.add('stage-number-bg');
+    readyText.textContent = '';
     stageText.classList.remove('hidden');
 
     startBtn.textContent = `Start ${stage.name}`;
@@ -506,13 +520,39 @@
     } catch(e) { if(onEndCallback) setTimeout(onEndCallback, 100); }
   }
 
+  function playBeep(frequency, duration) {
+    if (document.getElementById('mute').checked) return;
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+
+      gainNode.connect(audioContext.destination);
+      oscillator.connect(gainNode);
+
+      const now = audioContext.currentTime;
+      gainNode.gain.setValueAtTime(0, now);
+      gainNode.gain.linearRampToValueAtTime(1, now + 0.02); // Quick fade in
+      gainNode.gain.linearRampToValueAtTime(0, now + (duration / 1000)); // Fade out over duration
+
+      oscillator.start(now);
+      oscillator.stop(now + (duration / 1000));
+    } catch (e) {
+      console.error("Web Audio API is not supported in this browser.", e);
+    }
+  }
+
   function playInstructionSlides(slides, onComplete) {
-    if (stageInfoP.classList.contains('stage-number-bg')) {
-        stageInfoP.classList.remove('stage-number-bg');
+    if (instructionText.classList.contains('stage-number-bg')) {
+        instructionText.classList.remove('stage-number-bg');
         stageText.classList.add('hidden');
     }
-    stageInfoP.innerHTML = ''; // Clear it
-    stageInfoP.classList.remove('flashing-red');
+    instructionText.innerHTML = '';
+    readyText.innerHTML = '';
+    readyText.classList.remove('flashing-red');
 
     const shooterReadyText = "Shooter be ready!";
     const hasShooterReady = slides.includes(shooterReadyText);
@@ -520,7 +560,7 @@
     const fullText = filteredSlides.join('\n');
 
     const textNode = document.createTextNode('');
-    stageInfoP.appendChild(textNode);
+    instructionText.appendChild(textNode);
 
     let i = 0;
     function typeChar() {
@@ -530,8 +570,8 @@
             setTimeout(typeChar, 35);
         } else {
             if (hasShooterReady) {
-                stageInfoP.textContent = shooterReadyText;
-                stageInfoP.classList.add('flashing-red');
+                readyText.textContent = shooterReadyText;
+                readyText.classList.add('flashing-red');
             }
             if (onComplete) setTimeout(onComplete, 500);
         }
@@ -554,6 +594,7 @@
       dTO = setTimeout(() => {
         if (state !== 'standby') return;
 
+        playBeep(1500, 750);
         setCinemaMode(true);
         const pick = drillPick || stage.target;
         img.src = pick;
