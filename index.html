@@ -389,7 +389,7 @@
   const INSTRUCTOR_COF = [
     { name: "Stage 1", target: "images/1-01-01 (1).svg", instructions: ["Stage 1", "15 meters", "From holster", "4 standing", "4 kneeling", "22 seconds", "Shooter be ready!"], parTime: 22, type: 'single_exposure' },
     { name: "Stage 2", target: "images/2-01 (2).svg", instructions: ["Stage 2", "7 meters", "From high ready", "2 rounds", "RELOAD", "2 rounds", "8 seconds", "Shooter be ready!"], parTime: 8, type: 'reload_prompt', prompt_start: 5, prompt_end: 3 },
-    { name: "Stage 3", target: "images/1-01-01 (1).svg", instructions: ["Stage 3", "5 meters", "From holster", "2 centre mass", "1 head", "5 seconds per rep", "3 repetitions", "Shooter be ready!"], parTime: 5, reps: 3, delay_min: 14, delay_max: 22, type: 'multi_rep' },
+    { name: "Stage 3", target: "images/1-01-01 (1).svg", instructions: ["Stage 3", "5 meters", "From holster", "2 centre mass", "1 head", "5 seconds per rep", "3 repetitions", "Shooter be ready!"], parTime: 5, reps: 3, delay_min: 8, delay_max: 12, type: 'multi_rep' },
     { name: "Stage 4", target: "images/2-01 (2).svg", instructions: ["Stage 4", "25 meters", "From holster", "3 standing", "3 standing, from cover", "3 kneeling, from cover", "45 seconds", "Shooter be ready!"], parTime: 45, type: 'single_exposure' }
   ];
 
@@ -617,11 +617,17 @@
 
           if (stage.type === 'multi_rep') {
             repCounter++;
+            setCinemaMode(false);
             if (repCounter < stage.reps) {
               cornerStage.textContent = `${stage.name} - Rep ${repCounter + 1}/${stage.reps}`;
-              setCinemaMode(false);
-              stageInfoP.textContent = "Shooter be ready!";
-              runSingleDrill(false, drillPick);
+              readyText.textContent = "Shooter be ready!";
+              readyText.classList.add('flashing-red');
+              const resetDelay = (Math.random() * (stage.delay_max - stage.delay_min) + stage.delay_min) * 1000;
+              setTimeout(() => {
+                readyText.textContent = '';
+                readyText.classList.remove('flashing-red');
+                runSingleDrill(false, drillPick);
+              }, resetDelay);
             } else {
               showContinueScreen();
             }
