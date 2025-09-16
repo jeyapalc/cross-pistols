@@ -127,9 +127,9 @@
     z-index: 10;
     color: var(--ui);
   }
-  #stageInfo p.stage-number-bg {
+  #stageNumberBg {
     font-family: 'Archivo Black', sans-serif;
-    font-size: 60vh;
+    font-size: 85vmin;
     font-weight: 900;
     text-align: center;
     position: absolute;
@@ -137,10 +137,11 @@
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 5;
-    color: transparent; /* No fill */
+    color: transparent;
     -webkit-text-stroke-width: 4px;
     -webkit-text-stroke-color: #2BF97F;
     text-shadow: 0 0 10px rgba(43, 217, 127, 0.7), 0 0 20px rgba(43, 217, 127, 0.5);
+    pointer-events: none;
   }
   .bullet-hole {
     position: absolute;
@@ -350,6 +351,7 @@
 </header>
 <main>
   <div id="cornerStage"></div>
+  <div id="stageNumberBg"></div>
   <div id="stageInfo">
     <div id="instructionText"></div>
     <div id="readyText"></div>
@@ -396,12 +398,14 @@
     { name: "Stage 2", target: "images/2-01 (2).svg", instructions: ["Stage 2", "7 meters", "Police challenge!", "From holster, 2 rounds loaded", "2 rounds", "emergency reload", "2 rounds", "Repeat sequence once", "10 seconds total", "Shooter be ready!"], parTime: 10, type: 'reload_prompt', prompt_start: 7, prompt_end: 4 },
     {
       name: "Stage 3",
-      instructions: ["Stage 3", "5 meters", "3 timed blocks", "Shooter be ready!"],
+      instructions: ["Stage 3", "5 meters", "Shooter be ready!"],
       type: 'hard_splits',
+      delay_min: 8,
+      delay_max: 13,
       blocks: [
-        { parTime: 4, target: "images/1-01-01 (1).svg", instructions: ["Block 1: 1 CM, 1 HEAD"], startPosition: 'holster' },
-        { parTime: 5, target: "images/2-01 (2).svg", instructions: ["Block 2: 2 CM, 1 HEAD"], startPosition: 'holster' },
-        { parTime: 5, target: "images/1-01-01 (1).svg", instructions: ["Block 3: 2 CM, 2 HEAD"], startPosition: 'high_ready' }
+        { parTime: 4, target: "images/1-01-01 (1).svg", instructions: ["Draw from the holster, fire", "1 round center mass, 1", "round to the head"], startPosition: 'holster' },
+        { parTime: 5, target: "images/2-01 (2).svg", instructions: ["Draw from the holster, fire", "2 rounds center mass, 1", "round to the head"], startPosition: 'holster' },
+        { parTime: 5, target: "images/1-01-01 (1).svg", instructions: ["From the high ready, fire 2", "rounds center mass, 2", "rounds to the head"], startPosition: 'high_ready' }
       ]
     }
   ];
@@ -416,6 +420,7 @@
   const instructionText = document.getElementById('instructionText');
   const readyText = document.getElementById('readyText');
   const stageText = document.getElementById('stageText');
+  const stageNumberBg = document.getElementById('stageNumberBg');
   const reloadPrompt = stageInfo.querySelector('h2');
   const cornerStage = document.getElementById('cornerStage');
   const continueScreen = document.getElementById('continueScreen');
@@ -486,15 +491,15 @@
     const stage = currentCourse[currentStageIndex];
 
     if (!stage) {
-      stageInfoP.textContent = 'Course Complete';
+      instructionText.textContent = 'Course Complete';
       startBtn.disabled = true;
       stopBtn.disabled = true;
       return;
     }
 
     const stageNumber = stage.name.replace('Stage ', '');
-    instructionText.textContent = stageNumber;
-    instructionText.classList.add('stage-number-bg');
+    stageNumberBg.textContent = stageNumber;
+    instructionText.textContent = '';
     readyText.textContent = '';
     stageText.classList.remove('hidden');
 
@@ -546,10 +551,7 @@
   }
 
   function playInstructionSlides(slides, onComplete) {
-    if (instructionText.classList.contains('stage-number-bg')) {
-        instructionText.classList.remove('stage-number-bg');
-        stageText.classList.add('hidden');
-    }
+    stageNumberBg.textContent = '';
     instructionText.innerHTML = '';
     readyText.innerHTML = '';
     readyText.classList.remove('flashing-red');
@@ -573,7 +575,7 @@
                 readyText.textContent = shooterReadyText;
                 readyText.classList.add('flashing-red');
             }
-            if (onComplete) setTimeout(onComplete, 500);
+            if (onComplete) onComplete();
         }
     }
     typeChar();
@@ -651,8 +653,13 @@
             pTO = setTimeout(() => {
                 currentBlockIndex++;
                 setCinemaMode(false);
-                runNextBlock();
-            }, block.parTime * 1000 + 4000); // 4000 is the base random delay in runSingleDrill
+                if (currentBlockIndex < stage.blocks.length) {
+                    const resetDelay = (Math.random() * (stage.delay_max - stage.delay_min) + stage.delay_min) * 1000;
+                    setTimeout(runNextBlock, resetDelay);
+                } else {
+                    runNextBlock(); // Will trigger showContinueScreen
+                }
+            }, block.parTime * 1000);
         });
       };
       runNextBlock();
@@ -776,12 +783,10 @@
     startBtn.disabled = true;
     stopBtn.disabled = false;
 
-    setTimeout(() => {
-      const slides = [...stage.instructions];
-      const stageTitle = slides.shift();
-      cornerStage.textContent = stageTitle;
-      playInstructionSlides(slides, startDrill);
-    }, 500); // 0.5s delay
+    const slides = [...stage.instructions];
+    const stageTitle = slides.shift();
+    cornerStage.textContent = stageTitle;
+    playInstructionSlides(slides, startDrill);
   }
 
   function reset(){ loadStage(0); }
