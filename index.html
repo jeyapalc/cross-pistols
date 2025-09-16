@@ -619,8 +619,10 @@
       repCounter = 0;
       cornerStage.textContent = `${stage.name} - Rep 1/${stage.reps}`;
       runSingleDrill(true, stage.target);
+    } else if (stage.type === 'reload_prompt') {
+      runSingleDrill(true, stage.target);
     } else {
-      // Handles single_exposure, reload_prompt, and any other type
+      // Handles single_exposure and any other type
       runSingleDrill(true, stage.target);
     }
   }
