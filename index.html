@@ -697,7 +697,11 @@
     };
 
     const advance = () => { cleanup(); loadStage(currentStageIndex + 1); };
-    const repeat = () => { cleanup(); loadStage(currentStageIndex); startDrill(); };
+    const repeat = () => {
+      cleanup();
+      loadStage(currentStageIndex);
+      setTimeout(() => startBtn.click(), 100); // Use a small timeout to ensure UI is ready
+    };
 
     // Set the 10-second timeout to advance
     continueTO = setTimeout(advance, 10000);
