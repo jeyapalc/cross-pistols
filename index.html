@@ -380,7 +380,7 @@
   ];
 
   const REGULAR_MEMBER_COF = [
-    { name: "Stage 1", target: "images/1-01-01 (1).svg", instructions: ["Stage 1", "15 meters", "From holster", "4 rounds STANDING", "Toggle to kneeling (K)", "4 rounds KNEELING", "30 seconds", "Shooter be ready!"], parTime: 30, type: 'single_exposure' },
+    { name: "Stage 1", target: "images/1-01-01 (1).svg", instructions: ["Stage 1", "15 meters", "From holster", "4 rounds STANDING", "4 rounds KNEELING", "30 seconds", "Shooter be ready!"], parTime: 30, type: 'single_exposure' },
     { name: "Stage 2", target: "images/2-01 (2).svg", instructions: ["Stage 2", "7 meters", "Police challenge!", "From holster, 2 rounds loaded", "2 rounds", "emergency reload", "2 rounds", "Repeat sequence once", "10 seconds total", "Shooter be ready!"], parTime: 10, type: 'reload_prompt', prompt_start: 7, prompt_end: 4 },
     {
       name: "Stage 3",
@@ -467,6 +467,7 @@
     hideBulletHoles();
     setCinemaMode(false);
     reloadPrompt.style.display = 'none';
+    stageInfoP.classList.remove('flashing-red');
     state = 'idle';
     currentStageIndex = stageIndex;
     const stage = currentCourse[currentStageIndex];
@@ -511,8 +512,11 @@
         stageText.classList.add('hidden');
     }
     stageInfoP.innerHTML = ''; // Clear it
+    stageInfoP.classList.remove('flashing-red');
 
-    const filteredSlides = slides.filter(slide => slide !== "Shooter be ready!");
+    const shooterReadyText = "Shooter be ready!";
+    const hasShooterReady = slides.includes(shooterReadyText);
+    const filteredSlides = slides.filter(slide => slide !== shooterReadyText);
     const fullText = filteredSlides.join('\n');
 
     const textNode = document.createTextNode('');
@@ -525,6 +529,10 @@
             i++;
             setTimeout(typeChar, 35);
         } else {
+            if (hasShooterReady) {
+                stageInfoP.textContent = shooterReadyText;
+                stageInfoP.classList.add('flashing-red');
+            }
             if (onComplete) setTimeout(onComplete, 500);
         }
     }
@@ -533,7 +541,6 @@
 
   function startDrill() {
     const stage = currentCourse[currentStageIndex];
-    let initialPick = null;
 
     const runSingleDrill = (isFirstDrill, drillPick, parTime) => {
       state = 'standby';
@@ -608,14 +615,13 @@
         });
       };
       runNextBlock();
+    } else if (stage.type === 'multi_rep') {
+      repCounter = 0;
+      cornerStage.textContent = `${stage.name} - Rep 1/${stage.reps}`;
+      runSingleDrill(true, stage.target);
     } else {
-      if (stage.type === 'multi_rep') {
-        repCounter = 0;
-        cornerStage.textContent = `${stage.name} - Rep 1/${stage.reps}`;
-        initialPick = stage.target;
-      }
-
-      runSingleDrill(true, initialPick);
+      // Handles single_exposure, reload_prompt, and any other type
+      runSingleDrill(true, stage.target);
     }
   }
 
@@ -689,7 +695,7 @@
     };
 
     const advance = () => { cleanup(); loadStage(currentStageIndex + 1); };
-    const repeat = () => { cleanup(); startDrill(); };
+    const repeat = () => { cleanup(); loadStage(currentStageIndex); startDrill(); };
 
     // Set the 10-second timeout to advance
     continueTO = setTimeout(advance, 10000);
