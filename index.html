@@ -391,15 +391,21 @@
 <script>
 (()=> {
   const INSTRUCTOR_COF = [
-    { name: "Stage 1", target: "images/1-01-01 (1).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>22 seconds</span> to draw and fire 6 rounds from the <span class='text-bold-red'>15-meter line</span>.", "You will engage the targets by firing 4 rounds from the standing position and 4 rounds from the kneeling position.", "Be alert!"], parTime: 22, type: 'single_exposure' },
-    { name: "Stage 2", target: "images/2-01 (2).svg", instructions: ["Shooters on the line, ready and present from the high ready.", "On the sound of the shot timer, you will have <span class='text-bold-red'>8 seconds</span> to fire 4 rounds from the <span class='text-bold-red'>7-meter line</span>.", "You will engage the target by firing 2 rounds, then performing a reload, and firing 2 more rounds.", "Be alert!"], parTime: 8, type: 'reload_prompt', prompt_start: 5, prompt_end: 3 },
-    { name: "Stage 3", target: "images/1-01-01 (1).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>5 seconds</span> to draw and fire 3 rounds from the <span class='text-bold-red'>5-meter line</span>.", "You will engage the target by firing 2 rounds to the center mass and 1 round to the head.", "You will repeat this sequence <span class='text-bold-red'>3 times</span>.", "There will be a random <span class='text-bold-red'>8-12 second</span> reset period between each <span class='text-bold-red'>5-second</span> repetition.", "Be alert!"], parTime: 5, reps: 3, delay_min: 8, delay_max: 12, type: 'multi_rep' },
-    { name: "Stage 4", target: "images/2-01 (2).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>45 seconds</span> to draw and fire 9 rounds from the <span class='text-bold-red'>25-meter line</span>.", "You will engage the targets by firing <span class='text-bold-red'>3 rounds</span> from a standing position, <span class='text-bold-red'>3 rounds</span> from a standing position from cover, and <span class='text-bold-red'>3 rounds</span> from a kneeling position from cover.", "Be alert!"], parTime: 45, type: 'single_exposure' }
+    { name: "Stage 1", target: "images/1-01-01 (1).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>22 seconds</span> to draw and fire 6 rounds from the <span class='text-bold-red'>15-meter line</span>.", "You will engage the targets by firing 4 rounds from the standing position and 4 rounds from the kneeling position.", "Be alert!"], parTime: 22, type: 'single_exposure',
+        short_instructions: { start_pos: "From Holster", distance: "15m", time_limit: "22s", sequence: "4 Rounds, Kneel, 4 Rounds" } },
+    { name: "Stage 2", target: "images/2-01 (2).svg", instructions: ["Shooters on the line, ready and present from the high ready.", "On the sound of the shot timer, you will have <span class='text-bold-red'>8 seconds</span> to fire 4 rounds from the <span class='text-bold-red'>7-meter line</span>.", "You will engage the target by firing 2 rounds, then performing a reload, and firing 2 more rounds.", "Be alert!"], parTime: 8, type: 'reload_prompt', prompt_start: 5, prompt_end: 3,
+        short_instructions: { start_pos: "High Ready", distance: "7m", time_limit: "8s", sequence: "2 Rounds, Reload, 2 Rounds" } },
+    { name: "Stage 3", target: "images/1-01-01 (1).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>5 seconds</span> to draw and fire 3 rounds from the <span class='text-bold-red'>5-meter line</span>.", "You will engage the target by firing 2 rounds to the center mass and 1 round to the head.", "You will repeat this sequence <span class='text-bold-red'>3 times</span>.", "There will be a random <span class='text-bold-red'>8-12 second</span> reset period between each <span class='text-bold-red'>5-second</span> repetition.", "Be alert!"], parTime: 5, reps: 3, delay_min: 8, delay_max: 12, type: 'multi_rep',
+        short_instructions: { start_pos: "From Holster", distance: "5m", time_limit: "5s", sequence: "2 rds Center, 1 rd Head (x3)" } },
+    { name: "Stage 4", target: "images/2-01 (2).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>45 seconds</span> to draw and fire 9 rounds from the <span class='text-bold-red'>25-meter line</span>.", "You will engage the targets by firing <span class='text-bold-red'>3 rounds</span> from a standing position, <span class='text-bold-red'>3 rounds</span> from a standing position from cover, and <span class='text-bold-red'>3 rounds</span> from a kneeling position from cover.", "Be alert!"], parTime: 45, type: 'single_exposure',
+        short_instructions: { start_pos: "From Holster", distance: "25m", time_limit: "45s", sequence: "3 rds Standing, 3 rds Stand/Cover, 3 rds Kneel/Cover" } }
   ];
 
   const REGULAR_MEMBER_COF = [
-    { name: "Stage 1", target: "images/1-01-01 (1).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>30 seconds</span> to draw and fire 8 rounds from the <span class='text-bold-red'>15-meter line</span>.", "You will engage the targets by firing 4 rounds from a standing position and 4 rounds from a kneeling position.", "Be alert!"], parTime: 30, type: 'single_exposure' },
-    { name: "Stage 2", target: "images/2-01 (2).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>10 seconds</span> to draw and fire 6 rounds from the <span class='text-bold-red'>7-meter line</span>.", "You will engage the target with a police challenge, then draw and fire 2 rounds, perform an emergency reload, and fire 2 more rounds.", "You will repeat this sequence <span class='text-bold-red'>once</span>.", "Be alert!"], parTime: 10, type: 'reload_prompt', prompt_start: 7, prompt_end: 4 },
+    { name: "Stage 1", target: "images/1-01-01 (1).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>30 seconds</span> to draw and fire 8 rounds from the <span class='text-bold-red'>15-meter line</span>.", "You will engage the targets by firing 4 rounds from a standing position and 4 rounds from a kneeling position.", "Be alert!"], parTime: 30, type: 'single_exposure',
+        short_instructions: { start_pos: "From Holster", distance: "15m", time_limit: "30s", sequence: "4 rds Standing, 4 rds Kneeling" } },
+    { name: "Stage 2", target: "images/2-01 (2).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>10 seconds</span> to draw and fire 6 rounds from the <span class='text-bold-red'>7-meter line</span>.", "You will engage the target with a police challenge, then draw and fire 2 rounds, perform an emergency reload, and fire 2 more rounds.", "You will repeat this sequence <span class='text-bold-red'>once</span>.", "Be alert!"], parTime: 10, type: 'reload_prompt', prompt_start: 7, prompt_end: 4,
+        short_instructions: { start_pos: "From Holster", distance: "7m", time_limit: "10s", sequence: "Challenge, 2 rds, Reload, 2 rds" } },
     {
       name: "Stage 3",
       instructions: ["Be alert!"],
@@ -407,9 +413,12 @@
       delay_min: 8,
       delay_max: 13,
       blocks: [
-        { parTime: 4, target: "images/1-01-01 (1).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>4 seconds</span> to draw and fire 2 rounds from the <span class='text-bold-red'>5-meter line</span>.", "You will engage the target by firing 1 round to the center mass and 1 round to the head."], startPosition: 'holster' },
-        { parTime: 5, target: "images/2-01 (2).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>5 seconds</span> to draw and fire 3 rounds from the <span class='text-bold-red'>5-meter line</span>.", "You will engage the target by firing 2 rounds to the center mass and 1 round to the head."], startPosition: 'holster' },
-        { parTime: 5, target: "images/1-01-01 (1).svg", instructions: ["Shooters on the line, ready and present from the high ready.", "On the sound of the shot timer, you will have <span class='text-bold-red'>5 seconds</span> to fire 4 rounds from the <span class='text-bold-red'>5-meter line</span>.", "You will engage the target by firing 2 rounds to the center mass and 2 rounds to the head."], startPosition: 'high_ready' }
+        { parTime: 4, target: "images/1-01-01 (1).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>4 seconds</span> to draw and fire 2 rounds from the <span class='text-bold-red'>5-meter line</span>.", "You will engage the target by firing 1 round to the center mass and 1 round to the head."], startPosition: 'holster',
+            short_instructions: { start_pos: "From Holster", distance: "5m", time_limit: "4s", sequence: "1 rd Center, 1 rd Head" } },
+        { parTime: 5, target: "images/2-01 (2).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>5 seconds</span> to draw and fire 3 rounds from the <span class='text-bold-red'>5-meter line</span>.", "You will engage the target by firing 2 rounds to the center mass and 1 round to the head."], startPosition: 'holster',
+            short_instructions: { start_pos: "From Holster", distance: "5m", time_limit: "5s", sequence: "2 rds Center, 1 rd Head" } },
+        { parTime: 5, target: "images/1-01-01 (1).svg", instructions: ["Shooters on the line, ready and present from the high ready.", "On the sound of the shot timer, you will have <span class='text-bold-red'>5 seconds</span> to fire 4 rounds from the <span class='text-bold-red'>5-meter line</span>.", "You will engage the target by firing 2 rounds to the center mass and 2 rounds to the head."], startPosition: 'high_ready',
+            short_instructions: { start_pos: "High Ready", distance: "5m", time_limit: "5s", sequence: "2 rds Center, 2 rds Head" } }
       ]
     }
   ];
@@ -554,33 +563,32 @@
     }
   }
 
-  function playInstructionSlides(slides, onComplete) {
+  function playInstructionSlides(slides, onComplete, short_instructions) {
     stageText.classList.add('hidden');
     stageNumberBg.textContent = '';
     instructionText.innerHTML = '';
     readyText.innerHTML = '';
     readyText.classList.remove('flashing-red');
 
-    const shooterReadyText = "Be alert!";
-    const hasShooterReady = slides.includes(shooterReadyText);
-    const filteredSlides = slides.filter(slide => slide !== shooterReadyText);
+    if (short_instructions) {
+        instructionText.innerHTML = `
+            <p style="margin: 0; font-size: 2.5vh;">${short_instructions.start_pos}</p>
+            <p style="margin: 0; font-size: 2.5vh;">${short_instructions.distance}</p>
+            <p style="margin: 0; font-size: 2.5vh;">${short_instructions.time_limit} ⏱️</p>
+            <p style="margin: 0; font-size: 2.5vh;">${short_instructions.sequence}</p>
+        `;
+    }
 
-    let lineIndex = 0;
-    function displayNextLine() {
-      if (lineIndex < filteredSlides.length) {
-        instructionText.innerHTML += (lineIndex > 0 ? '<br><br>' : '') + filteredSlides[lineIndex];
-        lineIndex++;
-        setTimeout(displayNextLine, 1500); // 1.5 second delay between lines
-      } else {
-        // All lines displayed
+    const fullInstructionsText = slides.join(' ').replace(/<[^>]*>/g, ''); // strip html tags for TTS
+    say(fullInstructionsText, () => {
+        const shooterReadyText = "Be alert!";
+        const hasShooterReady = slides.some(s => s.includes(shooterReadyText));
         if (hasShooterReady) {
             readyText.textContent = shooterReadyText;
             readyText.classList.add('flashing-red');
         }
         if (onComplete) onComplete();
-      }
-    }
-    displayNextLine();
+    });
   }
 
   function startDrill() {
@@ -668,7 +676,7 @@
                     runNextBlock(); // Will trigger showContinueScreen
                 }
             }, block.parTime * 1000);
-        });
+        }, block.short_instructions);
       };
       runNextBlock();
     } else if (stage.type === 'multi_rep') {
@@ -794,7 +802,7 @@
     const slides = [...stage.instructions];
     const stageTitle = slides.shift();
     cornerStage.textContent = stageTitle;
-    playInstructionSlides(slides, startDrill);
+    playInstructionSlides(slides, startDrill, stage.short_instructions);
   }
 
   function reset(){ loadStage(0); }
