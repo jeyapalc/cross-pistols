@@ -410,6 +410,7 @@
       name: "Stage 3",
       instructions: ["Be alert!"],
       type: 'hard_splits',
+      target: "images/1-01-01 (1).svg",
       delay_min: 8,
       delay_max: 13,
       blocks: [
@@ -420,7 +421,9 @@
         { parTime: 5, target: "images/1-01-01 (1).svg", instructions: ["Shooters on the line, ready and present from the high ready.", "On the sound of the shot timer, you will have <span class='text-bold-red'>5 seconds</span> to fire 4 rounds from the <span class='text-bold-red'>5-meter line</span>.", "You will engage the target by firing 2 rounds to the center mass and 2 rounds to the head."], startPosition: 'high_ready',
             short_instructions: { start_pos: "High Ready", distance: "5m", time_limit: "5s", sequence: "2 rds Center, 2 rds Head" } }
       ]
-    }
+    },
+    { name: "Stage 4", target: "images/2-01 (2).svg", instructions: ["Shooters on the line, ready and holster your pistol.", "On the sound of the shot timer, you will have <span class='text-bold-red'>60 seconds</span> to draw and fire 9 rounds from the <span class='text-bold-red'>25-meter line</span>.", "You will engage the targets by firing <span class='text-bold-red'>3 rounds</span> from a standing position, <span class='text-bold-red'>3 rounds</span> from a standing position from cover, and <span class='text-bold-red'>3 rounds</span> from a kneeling position from cover.", "Be alert!"], parTime: 60, type: 'single_exposure',
+        short_instructions: { start_pos: "From Holster", distance: "25m", time_limit: "60s", sequence: "3 rds Standing, 3 rds Stand/Cover, 3 rds Kneel/Cover" } }
   ];
 
   const startBtn = document.getElementById('start');
@@ -801,7 +804,7 @@
 
     const slides = [...stage.instructions];
     const stageTitle = slides.shift();
-    cornerStage.textContent = stageTitle;
+    cornerStage.textContent = stage.name;
     playInstructionSlides(slides, startDrill, stage.short_instructions);
   }
 
