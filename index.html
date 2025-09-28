@@ -651,16 +651,6 @@
     const stage = currentCourse[currentStageIndex];
     const remaining = endTime - Date.now();
 
-    if (stage.name === "Stage 3" && currentCourse === INSTRUCTOR_COF) {
-      const remainingSeconds = remaining / 1000;
-      const hole1 = document.getElementById('bullet-hole-1');
-      const hole2 = document.getElementById('bullet-hole-2');
-      const hole3 = document.getElementById('bullet-hole-3');
-
-      if (remainingSeconds < 3.5) hole1.classList.remove('hidden');
-      if (remainingSeconds < 3.2) hole2.classList.remove('hidden');
-      if (remainingSeconds < 1.5) hole3.classList.remove('hidden');
-    }
 
     if(remaining <= 0){
       big.textContent = '00.00';
