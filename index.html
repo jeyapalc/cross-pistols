@@ -383,7 +383,6 @@
     <div>
       <button id="continueReshoot">Reshoot</button>
       <button id="continueNext">Next Stage</button>
-      <button id="showInstructions" style="font-size: 0.8rem; padding: .5rem .8rem; margin-left: 1rem;">Show Instructions</button>
     </div>
   </div>
 </main>
@@ -442,7 +441,6 @@
   const continueBar = document.getElementById('continueBar');
   const continueReshoot = document.getElementById('continueReshoot');
   const continueNext = document.getElementById('continueNext');
-  const showInstructions = document.getElementById('showInstructions');
   const reshootHud = document.getElementById('reshootHud');
   const stageSelectBtn = document.getElementById('stage-select-btn');
   const stageSelectDropdown = document.getElementById('stage-select-dropdown');
@@ -554,30 +552,6 @@
     }
   }
 
-  function playInstructionSlides(short_instructions, onComplete) {
-    stageText.classList.add('hidden');
-    stageNumberBg.textContent = '';
-    instructionText.innerHTML = '';
-    readyText.innerHTML = '';
-    readyText.classList.remove('flashing-red');
-
-    if (short_instructions) {
-        instructionText.innerHTML = `
-            <p style="margin: 0; font-size: 2.5vh;">${short_instructions.start_pos}</p>
-            <p style="margin: 0; font-size: 2.5vh;">${short_instructions.distance}</p>
-            <p style="margin: 0; font-size: 2.5vh;">${short_instructions.time_limit} ⏱️</p>
-            <p style="margin: 0; font-size: 2.5vh;">${short_instructions.sequence}</p>
-        `;
-        readyText.textContent = "Be alert!";
-        readyText.classList.add('flashing-red');
-    }
-
-    if (onComplete) {
-        // We need to simulate the delay that the TTS would have introduced.
-        // Let's use a fixed delay of 2 seconds.
-        setTimeout(onComplete, 2000);
-    }
-  }
 
   function startDrill() {
     const stage = currentCourse[currentStageIndex];
@@ -648,19 +622,17 @@
         const block = stage.blocks[currentBlockIndex];
         state = 'standby';
         cornerStage.textContent = `${stage.name} - Block ${currentBlockIndex + 1}/${stage.blocks.length}`;
-        playInstructionSlides(block.short_instructions, () => {
-            runSingleDrill(true, block.target, block.parTime);
-            pTO = setTimeout(() => {
-                currentBlockIndex++;
-                setCinemaMode(false);
-                if (currentBlockIndex < stage.blocks.length) {
-                    const resetDelay = (Math.random() * (stage.delay_max - stage.delay_min) + stage.delay_min) * 1000;
-                    setTimeout(runNextBlock, resetDelay);
-                } else {
-                    runNextBlock(); // Will trigger showContinueScreen
-                }
-            }, block.parTime * 1000);
-        });
+        runSingleDrill(true, block.target, block.parTime);
+        pTO = setTimeout(() => {
+            currentBlockIndex++;
+            setCinemaMode(false);
+            if (currentBlockIndex < stage.blocks.length) {
+                const resetDelay = (Math.random() * (stage.delay_max - stage.delay_min) + stage.delay_min) * 1000;
+                setTimeout(runNextBlock, resetDelay);
+            } else {
+                runNextBlock(); // Will trigger showContinueScreen
+            }
+        }, block.parTime * 1000);
       };
       runNextBlock();
     } else if (stage.type === 'multi_rep') {
@@ -761,18 +733,6 @@
 
     continueNext.onclick = advance;
     continueReshoot.onclick = repeat;
-    showInstructions.onclick = () => {
-      const stage = currentCourse[currentStageIndex];
-      let hudText = `== ${stage.name} ==\n\n`;
-      hudText += stage.instructions.slice(1, -1).join('\n');
-
-      reshootHud.textContent = hudText;
-      reshootHud.classList.remove('hidden');
-
-      setTimeout(() => {
-        reshootHud.classList.add('hidden');
-      }, 5000);
-    };
   }
 
   function start(){
@@ -784,7 +744,7 @@
     stopBtn.disabled = false;
 
     cornerStage.textContent = stage.name;
-    playInstructionSlides(stage.short_instructions, startDrill);
+    startDrill();
   }
 
   function reset(){ loadStage(0); }
