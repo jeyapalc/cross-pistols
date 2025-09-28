@@ -623,7 +623,7 @@
               setTimeout(() => {
                 readyText.textContent = '';
                 readyText.classList.remove('flashing-red');
-                runSingleDrill(false, drillPick);
+              runSingleDrill(false, stage.target);
               }, resetDelay);
             } else {
               showContinueScreen();
