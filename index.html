@@ -76,9 +76,6 @@
     transform: translate(-50%, -50%);
     width: 60vw;
     height: 40vh;
-    /* background: rgba(0,0,0,0.75); */
-    /* border: 2px solid var(--accent); */
-    /* padding: 1.5rem; */
     z-index: 20;
     color: white;
     transition: opacity .3s;
@@ -146,31 +143,6 @@
     -webkit-text-stroke-color: #2BF97F;
     text-shadow: 0 0 10px rgba(43, 217, 127, 0.7), 0 0 20px rgba(43, 217, 127, 0.5);
     pointer-events: none;
-  }
-  .bullet-hole {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background-color: black;
-    border-radius: 50%;
-    border: 2px solid #333;
-    box-shadow: 0 0 5px rgba(0,0,0,0.8);
-    z-index: 10;
-  }
-  #bullet-hole-1 {
-    top: 50%;
-    left: 48%;
-    transform: translate(-50%, -50%);
-  }
-  #bullet-hole-2 {
-    top: 52%;
-    left: 52%;
-    transform: translate(-50%, -50%);
-  }
-  #bullet-hole-3 { /* The headshot */
-    top: 30%;
-    left: 50%;
-    transform: translate(-50%, -50%);
   }
   @keyframes flipIn {
     from {
@@ -354,7 +326,7 @@
   <div id="status" aria-live="polite">Idle</div>
 </header>
 <main>
-  <div id="cornerStage"></div>
+  <div id="cornerStage" style="opacity: 0;"></div>
   <div id="stageNumberBg"></div>
   <div id="stageInfo">
     <div id="instructionText"></div>
@@ -371,9 +343,6 @@
         <div class="face back"></div>
       </div>
     </div>
-    <div id="bullet-hole-1" class="bullet-hole hidden"></div>
-    <div id="bullet-hole-2" class="bullet-hole hidden"></div>
-    <div id="bullet-hole-3" class="bullet-hole hidden"></div>
   </section>
   <div id="reshootHud" class="hidden"></div>
   <div id="continueScreen" class="hidden">
@@ -472,17 +441,10 @@
   function clearTimers(){ [dTO,pTO,continueTO,continueIV].forEach(t=>t&&clearTimeout(t)); if(tAF) cancelAnimationFrame(tAF); dTO=pTO=tAF=continueTO=continueIV=null; }
   function setFacing(isFacing){ turner.classList.toggle('facing', isFacing); turner.classList.toggle('away', !isFacing); }
 
-  function hideBulletHoles() {
-    for (let i = 1; i <= 3; i++) {
-      const hole = document.getElementById(`bullet-hole-${i}`);
-      if (hole) hole.classList.add('hidden');
-    }
-  }
-
   function setCinemaMode(active) {
     document.body.classList.toggle('cinema-active', active);
     stageInfo.style.opacity = active ? 0 : 1;
-    cornerStage.style.opacity = active ? 1 : 0;
+    cornerStage.style.opacity = 0;
   }
 
   function animatePaperFlap() {
@@ -495,7 +457,6 @@
 
   function loadStage(stageIndex) {
     clearTimers();
-    hideBulletHoles();
     setCinemaMode(false);
     reloadPrompt.style.display = 'none';
     readyText.classList.remove('flashing-red');
@@ -523,7 +484,6 @@
     pBar.style.width = '100%';
     pBar.style.backgroundColor = 'transparent';
     setFacing(false);
-    cornerStage.textContent = '';
   }
 
 
@@ -542,8 +502,8 @@
 
       const now = audioContext.currentTime;
       gainNode.gain.setValueAtTime(0, now);
-      gainNode.gain.linearRampToValueAtTime(1, now + 0.02); // Quick fade in
-      gainNode.gain.linearRampToValueAtTime(0, now + (duration / 1000)); // Fade out over duration
+      gainNode.gain.linearRampToValueAtTime(1, now + 0.02);
+      gainNode.gain.linearRampToValueAtTime(0, now + (duration / 1000));
 
       oscillator.start(now);
       oscillator.stop(now + (duration / 1000));
@@ -558,7 +518,6 @@
 
     const runSingleDrill = (isFirstDrill, drillPick, parTime) => {
       state = 'standby';
-      hideBulletHoles();
 
       const currentParTime = parTime || stage.parTime;
       const delay = (stage.type === 'multi_rep' && !isFirstDrill)
@@ -568,6 +527,10 @@
       dTO = setTimeout(() => {
         if (state !== 'standby') return;
 
+        if (readyText.textContent) {
+          readyText.textContent = '';
+          readyText.classList.remove('flashing-red');
+        }
         playBeep(1500, 750);
         setCinemaMode(true);
         const pick = drillPick || stage.target;
@@ -590,20 +553,13 @@
             repCounter++;
             setCinemaMode(false);
             if (repCounter < stage.reps) {
-              cornerStage.textContent = `${stage.name} - Rep ${repCounter + 1}/${stage.reps}`;
               readyText.textContent = "Shooter be ready!";
               readyText.classList.add('flashing-red');
-              const resetDelay = (Math.random() * (stage.delay_max - stage.delay_min) + stage.delay_min) * 1000;
-              setTimeout(() => {
-                readyText.textContent = '';
-                readyText.classList.remove('flashing-red');
               runSingleDrill(false, stage.target);
-              }, resetDelay);
             } else {
               showContinueScreen();
             }
           } else if (stage.type === 'hard_splits') {
-            // This is handled by runNextBlock
           }
           else {
             showContinueScreen();
@@ -621,7 +577,6 @@
         }
         const block = stage.blocks[currentBlockIndex];
         state = 'standby';
-        cornerStage.textContent = `${stage.name} - Block ${currentBlockIndex + 1}/${stage.blocks.length}`;
         runSingleDrill(true, block.target, block.parTime);
         pTO = setTimeout(() => {
             currentBlockIndex++;
@@ -630,19 +585,17 @@
                 const resetDelay = (Math.random() * (stage.delay_max - stage.delay_min) + stage.delay_min) * 1000;
                 setTimeout(runNextBlock, resetDelay);
             } else {
-                runNextBlock(); // Will trigger showContinueScreen
+                runNextBlock();
             }
         }, block.parTime * 1000);
       };
       runNextBlock();
     } else if (stage.type === 'multi_rep') {
       repCounter = 0;
-      cornerStage.textContent = `${stage.name} - Rep 1/${stage.reps}`;
       runSingleDrill(true, stage.target);
     } else if (stage.type === 'reload_prompt') {
       runSingleDrill(true, stage.target);
     } else {
-      // Handles single_exposure and any other type
       runSingleDrill(true, stage.target);
     }
   }
@@ -679,19 +632,15 @@
 
   function showContinueScreen(){
     document.getElementById('stage').style.opacity = 0;
-    // Reset the bar to full width instantly before showing
     continueBar.style.transition = 'none';
     continueBar.style.width = '100%';
 
     continueScreen.classList.remove('hidden');
 
-    // Force a reflow to ensure the transition is applied correctly after reset
     void continueBar.offsetWidth;
 
-    // Restore the transition property so the animation works
     continueBar.style.transition = 'width 10s linear';
 
-    // Set the dynamic button text
     const nextStage = currentCourse[currentStageIndex + 1];
     if (nextStage) {
       continueNext.textContent = nextStage.name;
@@ -710,16 +659,14 @@
     const repeat = () => {
       cleanup();
       loadStage(currentStageIndex);
-      setTimeout(() => startBtn.click(), 100); // Use a small timeout to ensure UI is ready
+      setTimeout(() => startBtn.click(), 100);
     };
 
-    // Set the 10-second timeout to advance
     continueTO = setTimeout(advance, 10000);
 
-    // Trigger the bar animation
     setTimeout(() => {
         continueBar.style.width = '0%';
-    }, 10); // Small delay to ensure the transition kicks in
+    }, 10);
 
     continueNext.onclick = advance;
     continueReshoot.onclick = repeat;
@@ -733,7 +680,6 @@
     startBtn.disabled = true;
     stopBtn.disabled = false;
 
-    cornerStage.textContent = stage.name;
     startDrill();
   }
 
