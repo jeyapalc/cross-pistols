@@ -421,6 +421,21 @@
   let currentCourse = INSTRUCTOR_COF;
   let currentStageIndex = 0;
   let continueTO = null, continueIV = null, repCounter = 0;
+  let audioCtx = null;
+
+  function getAudioContext() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+  }
+
+  function resumeAudioContext() {
+    const ctx = getAudioContext();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume();
+    }
+  }
 
   function populateStageDropdown() {
     stageSelectDropdown.innerHTML = '';
@@ -490,7 +505,7 @@
   function playBeep(frequency, duration) {
     if (document.getElementById('mute').checked) return;
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = getAudioContext();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -703,7 +718,10 @@
     populateStageDropdown();
   });
 
-  startBtn.addEventListener('click', start);
+  startBtn.addEventListener('click', () => {
+    resumeAudioContext();
+    start();
+  });
   stopBtn.addEventListener('click', reset);
 
   stageSelectBtn.addEventListener('click', (e) => {
@@ -718,7 +736,11 @@
   });
 
   document.addEventListener('keydown', e => {
-    if (e.code === 'Space') { e.preventDefault(); state === 'idle' ? start() : reset(); }
+    if (e.code === 'Space') {
+      resumeAudioContext();
+      e.preventDefault();
+      state === 'idle' ? start() : reset();
+    }
     if (e.code === 'Escape') { e.preventDefault(); reset(); }
 
     if (state === 'idle') {
