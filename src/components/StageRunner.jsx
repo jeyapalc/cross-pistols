@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCourseTimer, STATUS } from '../engine/useCourseTimer';
 import TargetDisplay from './TargetDisplay';
 import { Target } from 'lucide-react';
@@ -29,13 +29,62 @@ export default function StageRunner({ stage, onBack }) {
         }
     };
 
+    // Keyboard controls
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.repeat) return; // Ignore hold-down repeats
+
+            switch (e.key) {
+                case ' ': // Spacebar
+                    e.preventDefault(); // Prevent scrolling
+                    if (isIdle) {
+                        start();
+                    }
+                    break;
+                case 'Escape':
+                    e.preventDefault();
+                    if (!isIdle && !isFinished) {
+                        reset(); // Abort
+                    } else if (isIdle || isFinished) {
+                        reset();
+                        onBack(); // Go back to courses if not running
+                    }
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    if (isFinished && currentDrillIndex < stage.drills.length - 1) {
+                        handleNext();
+                    } else if (isIdle && currentDrillIndex < stage.drills.length - 1) {
+                        handleNext(); // Allow looking forward before starting
+                    }
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    if (isIdle || isFinished) {
+                        if (currentDrillIndex > 0) {
+                            handlePrev();
+                        } else {
+                            reset();
+                            onBack(); // Exit stage if at first drill
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isIdle, isFinished, currentDrillIndex, stage.drills.length, start, reset, handleNext, handlePrev, onBack]);
+
     return (
         <div className="relative w-full h-screen overflow-hidden bg-black font-mono text-green-500">
             {/* Massive Background Timer */}
             <div className={`absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden transition-all duration-300 ${isRunning ? 'text-red-900/30' :
-                    isInterval ? 'text-blue-900/30' :
-                        isStandby ? 'text-yellow-600/30' :
-                            isFinished ? 'text-green-900/10' : 'text-green-900/20'
+                isInterval ? 'text-blue-900/30' :
+                    isStandby ? 'text-yellow-600/30' :
+                        isFinished ? 'text-green-900/10' : 'text-green-900/20'
                 }`}>
                 <div className="text-[40vw] font-black leading-none tracking-tighter opacity-80 whitespace-nowrap">
                     {timeLeft.toFixed(1)}
