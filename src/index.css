@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --perspective-1000: 1000px;
+}
+
+@utility transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+@utility backface-hidden {
+  backface-visibility: hidden;
+}
+
+@utility rotate-y-90 {
+  transform: rotateY(90deg);
+}
+
+@utility rotate-y-0 {
+  transform: rotateY(0deg);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  background-color: #111827; /* gray-900 */
+  color: #fff;
+}
