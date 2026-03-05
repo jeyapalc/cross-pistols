@@ -1,42 +1,46 @@
 import React from 'react';
-import { Target, Clock, ShieldAlert } from 'lucide-react';
 
 export default function CourseSelector({ courses, onSelect }) {
     if (!courses || courses.length === 0) {
-        return <div className="text-gray-500 text-center py-10">No courses loaded.</div>;
+        return <div className="text-green-800 text-center py-10 font-mono tracking-widest text-sm">[ ERR: NO_CURRICULUM_DATA ]</div>;
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
-            {courses.map(course => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+            {courses.map((course, idx) => (
                 <button
                     key={course.id}
                     onClick={() => onSelect(course)}
-                    className="flex flex-col text-left bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 hover:border-red-500/50 hover:bg-gray-800 transition-all group overflow-hidden rounded-2xl relative shadow-xl hover:shadow-red-900/20 active:scale-[0.98]"
+                    className="relative group bg-black border border-green-800 hover:border-green-400 p-8 text-left transition-all overflow-hidden flex flex-col justify-between min-h-[200px]"
                 >
-                    {/* Top Accent Line */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-orange-500 opacity-75 group-hover:opacity-100 transition-opacity"></div>
+                    {/* Grid background on hover */}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,255,0,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,255,0,0.03)_1px,transparent_1px)] bg-[size:10px_10px] opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
-                    <div className="p-8 w-full">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 bg-gray-900 rounded-xl max-w-fit shadow-inner">
-                                <Target className="w-8 h-8 text-red-500" />
-                            </div>
-                            <span className="bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-orange-400" />
-                                {course.stages?.length || 0} Stages
+                    {/* Targeting Brackets */}
+                    <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-green-700 group-hover:border-green-400 transition-colors"></div>
+                    <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-green-700 group-hover:border-green-400 transition-colors"></div>
+                    <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-green-700 group-hover:border-green-400 transition-colors"></div>
+                    <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-green-700 group-hover:border-green-400 transition-colors"></div>
+
+                    <div className="relative z-10">
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="text-xs font-bold tracking-widest text-green-600 bg-green-900/30 px-2 py-1">
+                                MODULE_0{idx + 1}
+                            </span>
+                            <span className="text-sm font-bold text-green-700 group-hover:text-green-500 transition-colors">
+                                [{course.stages?.length || 0} STAGES]
                             </span>
                         </div>
 
-                        <h2 className="text-2xl font-black text-gray-100 mb-2 group-hover:text-white transition-colors">{course.name}</h2>
-                        <p className="text-gray-400 text-sm leading-relaxed mb-6">
-                            Standard training curriculum comprising {course.stages?.length || 0} stages of fire. Recommended for qualification prep.
-                        </p>
+                        <h2 className="text-3xl font-black text-green-500 group-hover:text-green-300 drop-shadow-[0_0_5px_rgba(34,197,94,0.5)] mb-2 uppercase tracking-tight">
+                            {course.name}
+                        </h2>
+                    </div>
 
-                        <div className="inline-flex items-center text-sm font-bold text-red-400 group-hover:text-red-300 transition-colors uppercase tracking-widest gap-2">
-                            Load Course
-                            <span className="transition-transform group-hover:translate-x-1">→</span>
-                        </div>
+                    <div className="relative z-10 w-full flex justify-end mt-8 border-t border-green-900/50 pt-4">
+                        <span className="text-green-600 group-hover:text-green-400 font-bold tracking-widest text-sm flex items-center gap-2 group-hover:translate-x-1 transition-transform">
+                            INITIALIZE <span className="animate-pulse">_</span>
+                        </span>
                     </div>
                 </button>
             ))}
