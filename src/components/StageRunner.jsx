@@ -86,7 +86,7 @@ export default function StageRunner({ stage, onBack }) {
                     isStandby ? 'text-yellow-600/30' :
                         isFinished ? 'text-green-900/10' : 'text-green-900/20'
                 }`}>
-                <div className="text-[65vw] font-black leading-none tracking-tighter opacity-80 whitespace-nowrap">
+                <div className="text-[75vw] font-black leading-none tracking-[-0.1em] opacity-80 whitespace-nowrap">
                     {timeLeft.toFixed(1)}
                 </div>
             </div>

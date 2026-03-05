@@ -23,11 +23,11 @@ export default function TargetDisplay({ status }) {
     }, [status]);
 
     return (
-        <div className="relative w-full h-[85vh] flex justify-center items-center perspective-1000">
+        <div className="relative w-full h-[95vh] flex justify-center items-center perspective-1000">
 
             {/* 3D Container - Scale to height */}
             <div
-                className={`relative h-full aspect-[2/3] transition-transform duration-[400ms] ease-[cubic-bezier(0.175,0.885,0.32,1.275)] transform-style-3d z-10 ${isFacing ? 'rotate-y-0 scale-100' : 'rotate-y-90 scale-95'
+                className={`relative h-full w-[60vh] transition-transform duration-[400ms] ease-[cubic-bezier(0.175,0.885,0.32,1.275)] transform-style-3d z-10 ${isFacing ? 'rotate-y-0 scale-100' : 'rotate-y-90 scale-95'
                     }`}
             >
                 {/* Image */}
@@ -35,13 +35,13 @@ export default function TargetDisplay({ status }) {
                     <img
                         src={targetImage}
                         alt="Shoot Target"
-                        className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(0,255,0,0.2)] grayscale mix-blend-screen hue-rotate-180 brightness-[1.75]"
+                        className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(0,0,0,0.5)]"
                     />
                 </div>
 
                 {/* Target Edge (simulating the side of the cardboard) */}
                 <div
-                    className="absolute inset-0 bg-green-950 w-3 h-full left-1/2 -ml-1.5 opacity-80"
+                    className="absolute inset-0 bg-yellow-900 w-3 h-full left-1/2 -ml-1.5"
                     style={{ transform: 'rotateY(90deg)' }}
                 ></div>
             </div>
