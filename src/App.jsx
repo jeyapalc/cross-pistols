@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import coursesData from './data/courses.json';
 import CourseSelector from './components/CourseSelector';
 import StageRunner from './components/StageRunner';
@@ -6,11 +6,31 @@ import StageRunner from './components/StageRunner';
 function App() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedStage, setSelectedStage] = useState(null);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+      const t = setTimeout(() => setIsReady(true), 1500);
+      return () => clearTimeout(t);
+  }, []);
 
   const resetSelection = () => {
     setSelectedCourse(null);
     setSelectedStage(null);
   };
+
+  if (!isReady) {
+      return (
+          <div className="fixed inset-0 bg-[#0d0d12] flex flex-col items-center justify-center z-50">
+              <img 
+                  src="/loading-logo.jpg" 
+                  alt="Loading" 
+                  className="w-48 h-48 sm:w-64 sm:h-64 object-contain animate-spin mix-blend-screen" 
+                  style={{ animationDuration: '0.5s' }}
+              />
+              <div className="mt-8 font-mono tracking-[0.5em] text-neutral-500 uppercase text-sm animate-pulse">Initializing...</div>
+          </div>
+      );
+  }
 
   const TopNav = () => (
     <header className="flex justify-between items-end border-b border-white/10 pb-4 mb-12 mt-4 relative">

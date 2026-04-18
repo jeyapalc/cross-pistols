@@ -34,8 +34,8 @@ export default function StageRunner({ stage, onBack }) {
             
             {/* Background Giant Timer (Only visible when active) */}
             {hideDistractions && (
-                <div className="fixed inset-0 flex items-center justify-center z-[5] pointer-events-none bg-[#09090b]">
-                    <span className="font-mono font-black text-white/10 tracking-tighter select-none mix-blend-screen leading-none" style={{ fontSize: '30vw' }}>
+                <div className="fixed inset-0 flex items-center justify-center z-[5] pointer-events-none bg-[#09090b] overflow-hidden">
+                    <span className="font-mono font-black text-white/5 tracking-tighter select-none leading-none" style={{ fontSize: '75vw', marginLeft: '-5vw' }}>
                         {isStandby ? drill.parTime.toFixed(1) : timeLeft.toFixed(1)}
                     </span>
                     {drill.type === 'reps' && (

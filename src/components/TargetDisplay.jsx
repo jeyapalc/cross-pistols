@@ -29,8 +29,8 @@ export default function TargetDisplay({ status, fullScreen = false }) {
         <div className={`relative flex justify-center items-center perspective-1000 ${fullScreen ? 'fixed inset-0 z-0 bg-transparent' : 'w-full h-80 mb-8'}`}>
             {/* 3D Container */}
             <div
-                className={`relative transition-transform duration-300 ease-out transform-style-3d ${isFacing ? 'rotate-y-0' : 'rotate-y-90'
-                    } ${fullScreen ? 'w-full h-full p-4' : 'w-56 h-full'}`}
+                className={`transition-transform duration-300 ease-out transform-style-3d ${isFacing ? 'rotate-y-0' : 'rotate-y-90'
+                    } ${fullScreen ? 'absolute inset-0 sm:inset-4' : 'relative w-56 h-full'}`}
             >
                 {/* Target Face */}
                 <div className="absolute inset-0 backface-hidden flex items-center justify-center">
