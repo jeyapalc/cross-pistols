@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStageTimer, STATUS } from '../engine/useStageTimer';
 import TargetDisplay from './TargetDisplay';
 
@@ -6,11 +6,34 @@ export default function StageRunner({ stage, onBack }) {
     const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
     const drill = stage.drills[currentDrillIndex];
 
-    const { status, timeLeft, start, reset } = useStageTimer(drill);
+    const { status, timeLeft, start, startSilent, reset } = useStageTimer(drill);
+    const hasChainedRef = useRef(false);
 
     const isFinished = status === STATUS.FINISHED;
     const isIdle = status === STATUS.IDLE;
     const isRunning = status === STATUS.RUNNING;
+    const isChainWait = status === STATUS.CHAIN_WAIT;
+
+    // Auto-chain: when drill finishes and stage has autoChain, advance and start silently
+    useEffect(() => {
+        if (isFinished && stage.autoChain && currentDrillIndex < stage.drills.length - 1 && !hasChainedRef.current) {
+            hasChainedRef.current = true;
+            const nextIndex = currentDrillIndex + 1;
+            const standbyRange = stage.chainStandbyRange || [6, 11];
+
+            // Small delay so FINISHED state renders briefly, then advance
+            setTimeout(() => {
+                setCurrentDrillIndex(nextIndex);
+                // reset() will fire from the drill change effect, then we start silent
+            }, 500);
+
+            // Schedule the silent start after the drill index updates
+            setTimeout(() => {
+                startSilent(standbyRange);
+                hasChainedRef.current = false;
+            }, 700);
+        }
+    }, [isFinished, stage, currentDrillIndex, startSilent]);
 
     const handleNext = () => {
         if (currentDrillIndex < stage.drills.length - 1) {
@@ -20,7 +43,7 @@ export default function StageRunner({ stage, onBack }) {
     };
 
     const isLastDrill = currentDrillIndex >= stage.drills.length - 1;
-    const nextStageLabel = isLastDrill ? null : `Continue to Drill ${currentDrillIndex + 2}`;
+    const showManualNext = !stage.autoChain && !isLastDrill;
 
     return (
         <div className="flex flex-col h-full animate-fade-in w-full space-y-6">
@@ -31,6 +54,7 @@ export default function StageRunner({ stage, onBack }) {
                     <h2 className="text-2xl font-black uppercase tracking-tight">{stage.name}</h2>
                     <p className="font-mono text-xs text-neutral-500 mt-1 uppercase tracking-widest">
                         Drill {currentDrillIndex + 1} of {stage.drills.length}
+                        {drill.label ? ` — ${drill.label}` : ''}
                     </p>
                 </div>
                 <button
@@ -121,8 +145,19 @@ export default function StageRunner({ stage, onBack }) {
             </div>
 
             {/* Target Display */}
-            <div className="flex-1 min-h-[250px] flex items-center justify-center">
+            <div className="flex-1 min-h-[250px] flex items-center justify-center relative">
                 <TargetDisplay status={status} />
+
+                {/* BE ALERT flash overlay during chain wait */}
+                {isChainWait && (
+                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                        <div className="hud-border px-8 py-5 border-red-500/60 bg-red-900/30 backdrop-blur-md shadow-[0_0_40px_rgba(239,68,68,0.4)] animate-pulse">
+                            <h2 className="text-2xl sm:text-3xl font-black text-red-500 uppercase tracking-[0.4em] drop-shadow-[0_0_20px_rgba(239,68,68,0.6)]">
+                                BE ALERT
+                            </h2>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Bottom Controls */}
@@ -141,12 +176,17 @@ export default function StageRunner({ stage, onBack }) {
                                 <button onClick={reset} className="font-mono tracking-[0.2em] text-xs text-neutral-400 hover:text-white py-2 px-4 border border-white/10 hover:border-white/30 transition-colors">
                                     RESHOOT
                                 </button>
-                                {nextStageLabel && (
+                                {showManualNext && (
                                     <button onClick={handleNext} className="group flex items-center space-x-2 py-2 px-4 border border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors">
                                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                        <span className="font-mono tracking-[0.15em] text-xs text-emerald-400">{nextStageLabel}</span>
+                                        <span className="font-mono tracking-[0.15em] text-xs text-emerald-400">Continue to Drill {currentDrillIndex + 2}</span>
                                     </button>
                                 )}
+                            </div>
+                        ) : isChainWait ? (
+                            <div className="flex items-center space-x-3 py-2 px-4">
+                                <div className="w-3 h-3 bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse"></div>
+                                <span className="font-mono tracking-[0.2em] text-sm text-red-400">BE ALERT</span>
                             </div>
                         ) : (
                             <div className="flex items-center space-x-3 py-2 px-4">
@@ -167,7 +207,7 @@ export default function StageRunner({ stage, onBack }) {
                     </div>
 
                     {/* Right: Timer */}
-                    <div className={`font-mono text-2xl tabular-nums ${isRunning ? 'text-white' : 'text-neutral-500'}`} style={{ letterSpacing: '-0.1em' }}>
+                    <div className={`font-mono text-2xl tabular-nums ${isRunning ? 'text-white' : isChainWait ? 'text-red-500 animate-pulse' : 'text-neutral-500'}`} style={{ letterSpacing: '-0.1em' }}>
                         {timeLeft.toFixed(2)}
                     </div>
                 </div>

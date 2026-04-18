@@ -23,6 +23,8 @@
       {
         "id": "reg-s2",
         "name": "Stage 2: 7 Meters",
+        "autoChain": true,
+        "chainStandbyRange": [6, 11],
         "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the timer, issue the Police challenge, draw from the holster, fire 2 rounds, followed by an emergency reload, then fire 2 more rounds. You have 10 seconds total. Shooters, be alert.",
         "drills": [
           {
@@ -36,7 +38,6 @@
             "rounds": 4
           },
           {
-            "audioId": "reg-s2",
             "type": "standard",
             "label": "Iteration 2",
             "parTime": 10,

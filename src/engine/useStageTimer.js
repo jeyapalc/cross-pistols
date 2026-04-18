@@ -3,10 +3,11 @@ import { audio } from './AudioEngine';
 
 export const STATUS = {
     IDLE: 'IDLE',
-    BRIEFING: 'BRIEFING',     // TTS reading standard briefing
-    READY_WAIT: 'READY_WAIT', // "Standby..."
-    RUNNING: 'RUNNING',       // Drill in progress
-    FINISHED: 'FINISHED',     // Par time ended
+    BRIEFING: 'BRIEFING',
+    READY_WAIT: 'READY_WAIT',
+    CHAIN_WAIT: 'CHAIN_WAIT',   // Auto-chain "BE ALERT" interval
+    RUNNING: 'RUNNING',
+    FINISHED: 'FINISHED',
 };
 
 export function useStageTimer(drill) {
@@ -24,44 +25,17 @@ export function useStageTimer(drill) {
         if (timerRef.current) clearInterval(timerRef.current);
     }, [drill]);
 
-    const startDrill = useCallback(async (stageId) => {
-        if (!drill) return;
-
-        audio.init(); // Ensure audio context is ready
-        
-        if (stageId) {
-            setStatus(STATUS.BRIEFING);
-            setIsBriefingWarning(false);
-            await audio.playScript(stageId, () => setIsBriefingWarning(true));
-            setIsBriefingWarning(false);
-        }
-
-        // Voice script is done, drop into standard randomized standby sequence
-        // which simulates the physical pause between "Be alert" and the tone.
-        setStatus(STATUS.READY_WAIT);
-
-        // simple random standby 2-4 seconds
-        const standbyTime = 2000 + Math.random() * 2000;
-
-        setTimeout(() => {
-            beginRun(drill.parTime);
-        }, standbyTime);
-
-    }, [drill]);
-
     const beginRun = (duration) => {
         audio.playStart();
         setStatus(STATUS.RUNNING);
         setTimeLeft(duration);
         startTimeRef.current = Date.now();
 
-        // Clear any existing interval
         if (timerRef.current) clearInterval(timerRef.current);
 
         timerRef.current = setInterval(() => {
             const elapsed = (Date.now() - startTimeRef.current) / 1000;
             const remaining = Math.max(0, duration - elapsed);
-
             setTimeLeft(remaining);
 
             if (remaining <= 0) {
@@ -76,13 +50,45 @@ export function useStageTimer(drill) {
         setStatus(STATUS.FINISHED);
     };
 
+    // Full start: plays audio briefing → standby → beep → run
+    const startDrill = useCallback(async (audioId) => {
+        if (!drill) return;
+        audio.init();
+
+        if (audioId) {
+            setStatus(STATUS.BRIEFING);
+            setIsBriefingWarning(false);
+            await audio.playScript(audioId, () => setIsBriefingWarning(true));
+            setIsBriefingWarning(false);
+        }
+
+        setStatus(STATUS.READY_WAIT);
+        const standbyTime = 2000 + Math.random() * 2000;
+        setTimeout(() => beginRun(drill.parTime), standbyTime);
+    }, [drill]);
+
+    // Silent start: no audio, custom standby range, used for auto-chain
+    const startSilent = useCallback((standbyRange = [2, 4]) => {
+        if (!drill) return;
+        audio.init();
+
+        setStatus(STATUS.CHAIN_WAIT);
+        const [min, max] = standbyRange;
+        const standbyTime = (min + Math.random() * (max - min)) * 1000;
+
+        setTimeout(() => {
+            setStatus(STATUS.READY_WAIT);
+            // Short ready-wait flash (1s) then beep
+            setTimeout(() => beginRun(drill.parTime), 1000);
+        }, standbyTime);
+    }, [drill]);
+
     useEffect(() => {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
     }, []);
 
-    // Update timeLeft when drill changes
     useEffect(() => {
         if (drill && status === STATUS.IDLE) {
             setTimeLeft(drill.parTime);
@@ -93,6 +99,7 @@ export function useStageTimer(drill) {
         status,
         timeLeft,
         start: startDrill,
+        startSilent,
         reset,
         isBriefingWarning,
     };
