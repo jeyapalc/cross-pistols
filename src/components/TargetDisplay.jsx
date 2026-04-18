@@ -34,9 +34,6 @@ export default function TargetDisplay({ status, fullScreen = false }) {
             >
                 {/* Target Face */}
                 <div className="absolute inset-0 backface-hidden flex items-center justify-center">
-                    {/* Shadow for realism */}
-                    <div className={`absolute top-4 left-4 w-full h-full bg-black/40 blur-2xl rounded-full transition-opacity duration-300 ${isFacing ? 'opacity-100' : 'opacity-0'}`}></div>
-
                     <img
                         src={targetImage}
                         alt="Shoot Target"
@@ -44,11 +41,16 @@ export default function TargetDisplay({ status, fullScreen = false }) {
                     />
                 </div>
 
-                {/* Target Edge (simulating the side of the cardboard) */}
+                {/* Highly Visible Cardboard Edge (faces camera when container is rotated 90deg) */}
                 <div
-                    className="absolute inset-0 bg-[#0d0d12] border-y border-white/5 w-1 h-full left-1/2 -ml-[0.5px]"
-                    style={{ transform: 'rotateY(90deg)' }}
-                ></div>
+                    className="absolute inset-y-4 sm:inset-y-8 left-1/2 w-3 sm:w-6 -ml-[1.5px] sm:-ml-[3px] bg-[#a67c52] border-x border-[#5c3a21] shadow-[0_0_50px_rgba(166,124,82,0.4)] flex flex-col justify-between overflow-hidden"
+                    style={{ transform: 'rotateY(-90deg) translateZ(2px)' }}
+                >
+                    {/* Corrugated lines */}
+                    {[...Array(20)].map((_, i) => (
+                        <div key={i} className="w-full h-[2px] bg-[#5c3a21]/40"></div>
+                    ))}
+                </div>
             </div>
 
             {/* Fallback/Overlay Text for states where target is edged but info is needed */}
