@@ -3,8 +3,8 @@ import { STATUS } from '../engine/useStageTimer';
 
 // Preload images to avoid flickering
 const TARGET_IMAGES = [
-    `${import.meta.env.BASE_URL}target-blue.png`,
-    `${import.meta.env.BASE_URL}target-green.png`
+    `${import.meta.env.BASE_URL}target-blue.svg`,
+    `${import.meta.env.BASE_URL}target-green.svg`
 ];
 
 export default function TargetDisplay({ status, fullScreen = false }) {

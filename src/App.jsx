@@ -22,9 +22,9 @@ function App() {
       return (
           <div className="fixed inset-0 bg-[#0d0d12] flex flex-col items-center justify-center z-50">
               <img 
-                  src="/loading-logo.jpg" 
+                  src="/loading-logo.png" 
                   alt="Loading" 
-                  className="w-48 h-48 sm:w-64 sm:h-64 object-contain animate-spin mix-blend-screen" 
+                  className="w-48 h-48 sm:w-64 sm:h-64 object-contain animate-spin" 
                   style={{ animationDuration: '0.5s' }}
               />
               <div className="mt-8 font-mono tracking-[0.5em] text-neutral-500 uppercase text-sm animate-pulse">Initializing...</div>
