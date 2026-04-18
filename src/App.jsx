@@ -21,11 +21,11 @@ function App() {
   if (!isReady) {
       return (
           <div className="fixed inset-0 bg-[#0d0d12] flex flex-col items-center justify-center z-50">
-              {/* Logo with white background removed via inversion & blend mode */}
+              {/* Clean Transparent Logo */}
               <img 
                   src="/loading-logo.png" 
                   alt="Loading" 
-                  className="w-48 h-48 sm:w-64 sm:h-64 object-contain mix-blend-screen invert opacity-80" 
+                  className="w-48 h-48 sm:w-64 sm:h-64 object-contain opacity-90 drop-shadow-2xl" 
               />
               
               {/* Tactical Loading Bar */}

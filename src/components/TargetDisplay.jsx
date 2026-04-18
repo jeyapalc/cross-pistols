@@ -40,7 +40,7 @@ export default function TargetDisplay({ status, fullScreen = false }) {
                     <img
                         src={targetImage}
                         alt="Shoot Target"
-                        className="w-full h-full object-contain filter drop-shadow-2xl opacity-90 mix-blend-screen"
+                        className="w-full h-full object-contain"
                     />
                 </div>
 
