@@ -1,75 +1,7 @@
 [
   {
-    "id": "instructor",
-    "name": "Instructor Course",
-    "stages": [
-      {
-        "id": "inst-s1",
-        "name": "Stage 1: 15 Meters",
-        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 22 seconds to draw from the holster and fire 4 rounds standing, then 4 rounds kneeling at 15 meters.",
-        "drills": [
-          {
-            "type": "standard",
-            "parTime": 22,
-            "description": "Draw, 4 Standing, 4 Kneeling",
-            "startSignal": "beep",
-            "readyPosition": "Holster",
-            "rounds": 8
-          }
-        ]
-      },
-      {
-        "id": "inst-s2",
-        "name": "Stage 2: 7 Meters",
-        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 8 seconds to start from high ready, fire 2 rounds, conduct a reload, then fire 2 more rounds at 7 meters.",
-        "drills": [
-          {
-            "type": "standard",
-            "parTime": 8,
-            "description": "High Ready, 2 rounds, Reload, 2 rounds",
-            "startSignal": "beep",
-            "readyPosition": "High Ready",
-            "rounds": 4
-          }
-        ]
-      },
-      {
-        "id": "inst-s3",
-        "name": "Stage 3: 5 Meters",
-        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will complete 3 repetitions; for each rep you have 5 seconds to draw from the holster and fire 2 centre mass and 1 head at 5 meters.",
-        "drills": [
-          {
-            "type": "reps",
-            "count": 3,
-            "parTime": 5,
-            "interval": 3,
-            "description": "Draw, 2 CM + 1 Head",
-            "startSignal": "beep",
-            "readyPosition": "Holster",
-            "rounds": 3
-          }
-        ]
-      },
-      {
-        "id": "inst-s4",
-        "name": "Stage 4: 25 Meters",
-        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 45 seconds to draw from the holster and fire 3 standing, 3 standing from cover, and 3 kneeling from cover at 25 meters.",
-        "drills": [
-          {
-            "type": "standard",
-            "parTime": 45,
-            "description": "Draw, 3 Standing, 3 Standing Cover, 3 Kneeling Cover",
-            "startSignal": "beep",
-            "readyPosition": "Holster",
-            "rounds": 9
-          }
-        ]
-      }
-    ]
-  },
-  {
     "id": "regular",
-    "name": "Regular Member Course",
+    "name": "AFQ",
     "stages": [
       {
         "id": "reg-s1",
@@ -135,6 +67,74 @@
             "readyPosition": "High Ready",
             "startPos": "HIGH READY",
             "rounds": 4
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "instructor",
+    "name": "BFI",
+    "stages": [
+      {
+        "id": "inst-s1",
+        "name": "Stage 1: 15 Meters",
+        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 22 seconds to draw from the holster and fire 4 rounds standing, then 4 rounds kneeling at 15 meters.",
+        "drills": [
+          {
+            "type": "standard",
+            "parTime": 22,
+            "description": "Draw, 4 Standing, 4 Kneeling",
+            "startSignal": "beep",
+            "readyPosition": "Holster",
+            "rounds": 8
+          }
+        ]
+      },
+      {
+        "id": "inst-s2",
+        "name": "Stage 2: 7 Meters",
+        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 8 seconds to start from high ready, fire 2 rounds, conduct a reload, then fire 2 more rounds at 7 meters.",
+        "drills": [
+          {
+            "type": "standard",
+            "parTime": 8,
+            "description": "High Ready, 2 rounds, Reload, 2 rounds",
+            "startSignal": "beep",
+            "readyPosition": "High Ready",
+            "rounds": 4
+          }
+        ]
+      },
+      {
+        "id": "inst-s3",
+        "name": "Stage 3: 5 Meters",
+        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will complete 3 repetitions; for each rep you have 5 seconds to draw from the holster and fire 2 centre mass and 1 head at 5 meters.",
+        "drills": [
+          {
+            "type": "reps",
+            "count": 3,
+            "parTime": 5,
+            "interval": 3,
+            "description": "Draw, 2 CM + 1 Head",
+            "startSignal": "beep",
+            "readyPosition": "Holster",
+            "rounds": 3
+          }
+        ]
+      },
+      {
+        "id": "inst-s4",
+        "name": "Stage 4: 25 Meters",
+        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 45 seconds to draw from the holster and fire 3 standing, 3 standing from cover, and 3 kneeling from cover at 25 meters.",
+        "drills": [
+          {
+            "type": "standard",
+            "parTime": 45,
+            "description": "Draw, 3 Standing, 3 Standing Cover, 3 Kneeling Cover",
+            "startSignal": "beep",
+            "readyPosition": "Holster",
+            "rounds": 9
           }
         ]
       }
