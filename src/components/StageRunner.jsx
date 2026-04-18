@@ -2,44 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useStageTimer, STATUS } from '../engine/useStageTimer';
 import TargetDisplay from './TargetDisplay';
 
-// Clean SVG icon components
-const IconRange = () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 12h4l3-9 4 18 3-9h4" />
-    </svg>
-);
-const IconTime = () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-    </svg>
-);
-const IconStance = () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="4" r="2.5" />
-        <line x1="12" y1="6.5" x2="12" y2="15" />
-        <line x1="8" y1="10" x2="16" y2="10" />
-        <line x1="12" y1="15" x2="8" y2="22" />
-        <line x1="12" y1="15" x2="16" y2="22" />
-    </svg>
-);
-const IconRounds = () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="6" y="2" rx="3" width="12" height="20" />
-        <line x1="12" y1="6" x2="12" y2="8" />
-        <line x1="12" y1="10" x2="12" y2="12" />
-        <line x1="12" y1="14" x2="12" y2="16" />
-    </svg>
-);
-const IconFacings = () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" />
-        <rect x="14" y="3" width="7" height="7" />
-        <rect x="3" y="14" width="7" height="7" />
-        <rect x="14" y="14" width="7" height="7" />
-    </svg>
-);
-
 export default function StageRunner({ stage, onBack }) {
     const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
     const drill = stage.drills[currentDrillIndex];
@@ -52,6 +14,12 @@ export default function StageRunner({ stage, onBack }) {
     const isRunning = status === STATUS.RUNNING;
     const isChainWait = status === STATUS.CHAIN_WAIT;
     const isActive = status === STATUS.BRIEFING || status === STATUS.READY_WAIT || isRunning || isChainWait;
+
+    const rangeMeters = stage.name.match(/(\d+)\s*m/i)?.[1] || '--';
+    const isLastDrill = currentDrillIndex >= stage.drills.length - 1;
+    const showManualNext = !stage.autoChain && !isLastDrill;
+    const fade = 'transition-all duration-[600ms] ease-[cubic-bezier(0.4,0,0.2,1)]';
+    const timeRatio = timeLeft / drill.parTime;
 
     // Auto-chain logic
     useEffect(() => {
@@ -69,11 +37,6 @@ export default function StageRunner({ stage, onBack }) {
             reset();
         }
     };
-
-    const isLastDrill = currentDrillIndex >= stage.drills.length - 1;
-    const showManualNext = !stage.autoChain && !isLastDrill;
-    const rangeMeters = stage.name.match(/(\d+)\s*m/i)?.[1] || '--';
-    const fade = 'transition-all duration-[600ms] ease-[cubic-bezier(0.4,0,0.2,1)]';
 
     return (
         <div className="flex flex-col h-full animate-fade-in w-full space-y-6 relative">
@@ -101,23 +64,42 @@ export default function StageRunner({ stage, onBack }) {
                 </div>
             )}
 
-            {/* ── Drill Stats ── */}
-            <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 ${fade} ${isActive ? 'opacity-0 -translate-y-4 pointer-events-none' : ''}`}>
-                <StatBlock icon={<IconRange />} label="Range" value={`${rangeMeters}m`} color="emerald" />
-                <StatBlock icon={<IconTime />} label="Par Time" value={`${drill.parTime}s`} color="cyan" />
-                <StatBlock icon={<IconStance />} label="Stance" value={drill.readyPosition?.toUpperCase() || 'STANDING'} color="rose" />
-                <StatBlock icon={<IconRounds />} label="Rounds" value={drill.rounds || '--'} color="violet" />
-                {stage.drills.length > 1 && (
-                    <StatBlock icon={<IconFacings />} label="Iteration" value={`${currentDrillIndex + 1} / ${stage.drills.length}`} color="amber" />
+            {/* ── Drill Info (text-based HUD, no icons) ── */}
+            <div className={`hud-border p-5 sm:p-6 ${fade} ${isActive ? 'opacity-0 -translate-y-4 pointer-events-none' : ''}`}>
+                <div className="hud-crosshair-v"></div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-4 gap-x-8">
+                    <div>
+                        <span className="font-mono text-[10px] text-neutral-600 uppercase tracking-widest block mb-1">Range</span>
+                        <span className="font-mono text-lg text-white font-bold">{rangeMeters}m</span>
+                    </div>
+                    <div>
+                        <span className="font-mono text-[10px] text-neutral-600 uppercase tracking-widest block mb-1">Par Time</span>
+                        <span className="font-mono text-lg text-white font-bold">{drill.parTime}s</span>
+                    </div>
+                    <div>
+                        <span className="font-mono text-[10px] text-neutral-600 uppercase tracking-widest block mb-1">Rounds</span>
+                        <span className="font-mono text-lg text-white font-bold">{drill.rounds || '--'}</span>
+                    </div>
+                    <div>
+                        <span className="font-mono text-[10px] text-neutral-600 uppercase tracking-widest block mb-1">Position</span>
+                        <span className="font-mono text-lg text-white font-bold">{drill.readyPosition?.toUpperCase() || 'STANDING'}</span>
+                    </div>
+                </div>
+                {drill.description && (
+                    <p className="font-mono text-xs text-neutral-500 mt-4 pt-4 border-t border-white/5 uppercase tracking-wider">{drill.description}</p>
                 )}
             </div>
 
-            {/* ── Background Countdown Timer (behind target, only during RUNNING) ── */}
+            {/* ── Background Countdown Timer (behind target, RUNNING only) ── */}
             {isRunning && (
                 <div className="fixed inset-0 z-30 flex items-center justify-center bg-black overflow-hidden">
                     <span
                         className="timer-text"
-                        style={{ color: (timeLeft / drill.parTime) <= 0.10 ? '#5C1A1A' : '#FF3B30', opacity: (timeLeft / drill.parTime) <= 0.10 ? 0.6 : 0.15, transition: 'color 0.5s ease, opacity 0.5s ease' }}
+                        style={{
+                            color: timeRatio <= 0.10 ? '#CC2020' : '#1a1a1a',
+                            opacity: timeRatio <= 0.10 ? 0.8 : 0.4,
+                            transition: 'color 0.5s ease, opacity 0.5s ease',
+                        }}
                     >
                         {timeLeft.toFixed(1)}
                     </span>
@@ -129,7 +111,7 @@ export default function StageRunner({ stage, onBack }) {
                 <TargetDisplay status={status} expanded={isActive} />
             </div>
 
-            {/* ── Bottom: INITIATE / RESHOOT only (no timer bar when idle) ── */}
+            {/* ── Bottom Actions ── */}
             <div className={`${fade} ${isActive ? 'opacity-0 translate-y-8 pointer-events-none' : ''}`}>
                 {isIdle && (
                     <button onClick={() => start(drill.audioId || stage.id)} className="group w-full flex items-center justify-center space-x-4 py-4 hud-border bg-emerald-500/5 hover:bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/40 transition-all">
@@ -149,28 +131,6 @@ export default function StageRunner({ stage, onBack }) {
                         )}
                     </div>
                 )}
-            </div>
-        </div>
-    );
-}
-
-// Reusable stat block component
-function StatBlock({ icon, label, value, color }) {
-    const colors = {
-        emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-        cyan: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',
-        rose: 'bg-rose-500/10 border-rose-500/20 text-rose-400',
-        violet: 'bg-violet-500/10 border-violet-500/20 text-violet-400',
-        amber: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
-    };
-    return (
-        <div className="flex items-center space-x-3 p-3 rounded-sm bg-[#0c0c10] border border-white/5">
-            <div className={`w-9 h-9 rounded-full border flex items-center justify-center flex-shrink-0 ${colors[color]}`}>
-                {icon}
-            </div>
-            <div className="flex flex-col min-w-0">
-                <span className="font-bold uppercase text-[9px] tracking-widest text-neutral-500">{label}</span>
-                <span className="font-mono text-sm text-white truncate">{value}</span>
             </div>
         </div>
     );

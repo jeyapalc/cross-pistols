@@ -95,10 +95,10 @@
   /* Massive background countdown timer */
   .timer-text {
     font-family: 'Bebas Neue', 'Anton', 'Teko', sans-serif;
-    font-size: min(28vw, 85vh);
+    font-size: min(55vw, 160vh);
     line-height: 0.75;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.04em;
     white-space: nowrap;
     display: flex;
     align-items: center;
