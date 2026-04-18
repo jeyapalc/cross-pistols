@@ -105,7 +105,7 @@ export default function StageRunner({ stage, onBack, isPro = false }) {
             {/* ── PRO 3D Environment (renders whenever drill is not idle) ── */}
             {isPro && !isIdle && (
                 <Suspense fallback={null}>
-                    <ProEnvironment modelName="Snow_draco.glb" />
+                    <ProEnvironment modelName="711_final.glb" />
                 </Suspense>
             )}
 
