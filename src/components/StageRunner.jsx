@@ -41,6 +41,13 @@ export default function StageRunner({ stage, onBack }) {
         }
     };
 
+    const formatTime = (t) => {
+        const s = Math.max(0, t);
+        const secs = Math.floor(s).toString().padStart(2, '0');
+        const frac = Math.floor((s % 1) * 10000).toString().padStart(4, '0');
+        return `${secs}:${frac.slice(0,2)}:${frac.slice(2,4)}`;
+    };
+
     return (
         <div className="flex flex-col h-full animate-fade-in w-full space-y-6 relative">
 
@@ -77,7 +84,7 @@ export default function StageRunner({ stage, onBack }) {
                     </div>
                     <div>
                         <span className="font-mono text-[10px] text-neutral-600 uppercase tracking-widest block mb-1">Par Time</span>
-                        <span className="font-mono text-lg text-white font-bold">{drill.parTime}s</span>
+                        <span className="font-mono text-lg text-white font-bold">{formatTime(drill.parTime)}</span>
                     </div>
                     <div>
                         <span className="font-mono text-[10px] text-neutral-600 uppercase tracking-widest block mb-1">Rounds</span>
@@ -104,7 +111,7 @@ export default function StageRunner({ stage, onBack }) {
                             transition: 'color 0.5s ease, opacity 0.5s ease',
                         }}
                     >
-                        {timeLeft.toFixed(1)}
+                        {formatTime(timeLeft)}
                     </span>
                 </div>
             )}
