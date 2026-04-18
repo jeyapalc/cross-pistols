@@ -3,8 +3,8 @@ import { STATUS } from '../engine/useStageTimer';
 
 // Preload images to avoid flickering
 const TARGET_IMAGES = [
-    '/target-blue.png',
-    '/target-green.png'
+    `${import.meta.env.BASE_URL}target-blue.png`,
+    `${import.meta.env.BASE_URL}target-green.png`
 ];
 
 export default function TargetDisplay({ status }) {
