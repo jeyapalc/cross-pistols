@@ -68,7 +68,6 @@ function App() {
     return (
       <div className="min-h-screen text-white p-4 sm:p-8 flex items-center justify-center">
         <div className="w-full max-w-5xl">
-          <TopNav />
           <StageRunner
             stage={selectedStage}
             onBack={() => setSelectedStage(null)}
