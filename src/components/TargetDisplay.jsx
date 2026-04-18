@@ -44,8 +44,8 @@ export default function TargetDisplay({ status, expanded = false }) {
                 <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                     <div className="strobe-warning pointer-events-none">
                         <div className="relative overflow-hidden px-12 py-6 border-2 border-red-500 bg-red-950/60 shadow-[inset_0_0_60px_rgba(220,38,38,0.8),0_0_40px_rgba(220,38,38,0.5)]">
-                            <div className="absolute inset-0 opacity-[0.12]" style={{
-                                backgroundImage: 'repeating-linear-gradient(45deg, #ffffff 0, #ffffff 1px, transparent 1px, transparent 10px), repeating-linear-gradient(-45deg, #ffffff 0, #ffffff 1px, transparent 1px, transparent 10px)'
+                            <div className="absolute inset-0 opacity-40 mix-blend-multiply" style={{
+                                backgroundImage: 'repeating-linear-gradient(-45deg, #000 0, #000 12px, transparent 12px, transparent 24px)'
                             }}></div>
                             <h2 className="relative z-10 text-3xl sm:text-4xl font-black text-white uppercase tracking-[0.4em] drop-shadow-[0_0_15px_rgba(220,38,38,1)]">
                                 BE READY
@@ -60,8 +60,8 @@ export default function TargetDisplay({ status, expanded = false }) {
                 <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                     <div className="strobe-warning pointer-events-none">
                         <div className="relative overflow-hidden px-12 py-6 border-2 border-red-500 bg-red-950/60 shadow-[inset_0_0_60px_rgba(220,38,38,0.8),0_0_40px_rgba(220,38,38,0.5)]">
-                            <div className="absolute inset-0 opacity-[0.12]" style={{
-                                backgroundImage: 'repeating-linear-gradient(45deg, #ffffff 0, #ffffff 1px, transparent 1px, transparent 10px), repeating-linear-gradient(-45deg, #ffffff 0, #ffffff 1px, transparent 1px, transparent 10px)'
+                            <div className="absolute inset-0 opacity-40 mix-blend-multiply" style={{
+                                backgroundImage: 'repeating-linear-gradient(-45deg, #000 0, #000 12px, transparent 12px, transparent 24px)'
                             }}></div>
                             <h2 className="relative z-10 text-3xl sm:text-4xl font-black text-white uppercase tracking-[0.4em] drop-shadow-[0_0_15px_rgba(220,38,38,1)]">
                                 BE ALERT

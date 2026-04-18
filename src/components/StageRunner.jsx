@@ -106,8 +106,8 @@ export default function StageRunner({ stage, onBack }) {
                     <span
                         className="timer-text"
                         style={{
-                            color: timeRatio <= 0.10 ? '#CC2020' : '#1a1a1a',
-                            opacity: timeRatio <= 0.10 ? 0.8 : 0.4,
+                            color: timeRatio <= 0.10 ? '#7f1d1d' : '#1a1a1a',
+                            opacity: timeRatio <= 0.10 ? 0.6 : 0.4,
                             transition: 'color 0.5s ease, opacity 0.5s ease',
                         }}
                     >
