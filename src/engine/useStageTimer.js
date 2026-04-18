@@ -3,6 +3,7 @@ import { audio } from './AudioEngine';
 
 export const STATUS = {
     IDLE: 'IDLE',
+    BRIEFING: 'BRIEFING',     // TTS reading standard briefing
     READY_WAIT: 'READY_WAIT', // "Standby..."
     RUNNING: 'RUNNING',       // Drill in progress
     FINISHED: 'FINISHED',     // Par time ended
@@ -22,10 +23,18 @@ export function useStageTimer(drill) {
         if (timerRef.current) clearInterval(timerRef.current);
     }, [drill]);
 
-    const startDrill = useCallback(() => {
+    const startDrill = useCallback(async (briefingText) => {
         if (!drill) return;
 
         audio.init(); // Ensure audio context is ready
+        
+        if (briefingText) {
+            setStatus(STATUS.BRIEFING);
+            await audio.speak(`${briefingText}. Shooters, be alert!`);
+        }
+
+        // Voice script is done, drop into standard randomized standby sequence
+        // which simulates the physical pause between "Be alert" and the tone.
         setStatus(STATUS.READY_WAIT);
 
         // simple random standby 2-4 seconds

@@ -104,8 +104,8 @@ export default function StageRunner({ stage, onBack }) {
                     {/* Status Indicator & Action */}
                     <div className="w-full sm:w-48">
                         {isIdle ? (
-                            <button onClick={start} className="group flex items-center space-x-3 w-full hover:bg-white/5 py-2 px-3 transition-colors border border-transparent hover:border-white/10">
-                                <div className="w-3 h-3 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></div>
+                            <button onClick={() => start(stage.briefing)} className="group flex items-center space-x-3 w-full hover:bg-white/5 py-2 px-3 transition-colors border border-transparent hover:border-white/10">
+                                <div className="w-3 h-3 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
                                 <span className="font-mono tracking-[0.2em] text-sm group-hover:text-white transition-colors">INITIATE</span>
                             </button>
                         ) : isFinished ? (
@@ -124,7 +124,7 @@ export default function StageRunner({ stage, onBack }) {
                              <div className="flex items-center space-x-3 w-full py-2 px-3">
                                 <div className={`w-3 h-3 ${isRunning ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)] animate-pulse'}`}></div>
                                 <span className="font-mono tracking-[0.2em] text-sm text-white">
-                                    {isRunning ? 'ACTIVE' : 'STANDBY'}
+                                    {isRunning ? 'ACTIVE' : status === STATUS.BRIEFING ? 'COMM LINK' : 'STANDBY'}
                                 </span>
                             </div>
                         )}

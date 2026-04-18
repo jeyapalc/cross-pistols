@@ -63,12 +63,23 @@ export default function TargetDisplay({ status, fullScreen = false }) {
                 </div>
             )}
 
+            {!isFacing && status === STATUS.BRIEFING && (
+                <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                    <div className="hud-border px-8 py-4 border-cyan-500/50 bg-cyan-900/10 backdrop-blur-md">
+                        <div className="hud-crosshair-v"></div>
+                        <h2 className="text-2xl font-mono font-bold text-cyan-400/80 uppercase animate-pulse tracking-[0.3em]">
+                            RANGE COMMANDS...
+                        </h2>
+                    </div>
+                </div>
+            )}
+
             {!isFacing && status === STATUS.IDLE && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="hud-border px-8 py-6 border-red-500/30 bg-red-900/20 backdrop-blur-md animate-pulse">
+                    <div className="hud-border px-8 py-6 border-emerald-500/30 bg-emerald-900/20 backdrop-blur-md animate-pulse">
                         <div className="hud-crosshair-v"></div>
-                        <h2 className="text-3xl font-black text-rose-500 uppercase tracking-[0.4em] drop-shadow-[0_0_15px_rgba(244,63,94,0.5)]">
-                            BE ALERT
+                        <h2 className="text-3xl font-black text-emerald-500 uppercase tracking-[0.4em] drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]">
+                            SYSTEM READY
                         </h2>
                     </div>
                 </div>
