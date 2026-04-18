@@ -9,9 +9,7 @@ function App() {
   const [selectedStage, setSelectedStage] = useState(null);
   const [isReady, setIsReady] = useState(false);
   const [activeTab, setActiveTab] = useState('Courses');
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('crossPistolsAuth') === 'true';
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // TEMPORARILY BYPASSED FOR DEV
 
   const handleLogin = () => {
     localStorage.setItem('crossPistolsAuth', 'true');
