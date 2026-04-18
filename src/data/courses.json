@@ -6,11 +6,13 @@
       {
         "id": "reg-s1",
         "name": "Stage 1: 15 Meters",
-        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 30 seconds to draw from the holster and fire 4 rounds STANDING, toggle to kneeling (K), then fire 4 rounds KNEELING at 15 meters.",
+        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 30 seconds to draw from the holster and fire 4 rounds STANDING, safely move to kneeling, then fire 4 rounds KNEELING at 15 meters. Shooters, be alert.",
         "drills": [
           {
+            "audioId": "reg-s1",
             "type": "standard",
             "parTime": 30,
+            "label": "Draw, 4 Standing, Kneel, 4 Kneeling",
             "description": "Draw, 4 Standing, Kneel, 4 Kneeling",
             "startSignal": "beep",
             "readyPosition": "Holster",
@@ -21,22 +23,24 @@
       {
         "id": "reg-s2",
         "name": "Stage 2: 7 Meters",
-        "briefing": "Shooters on the line, ready and holster your pistol. Each block: on the sound of the timer, issue the Police challenge, draw from the holster, fire 2 to emergency reload, then fire 2 rounds (10s total).",
+        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the timer, issue the Police challenge, draw from the holster, fire 2 rounds, followed by an emergency reload, then fire 2 more rounds. You have 10 seconds total. Shooters, be alert.",
         "drills": [
           {
+            "audioId": "reg-s2",
             "type": "standard",
             "label": "Iteration 1",
             "parTime": 10,
-            "description": "Issue Challenge, Draw, 2 Rds, Emerg Reload, 2 Rds",
+            "description": "Challenge, Draw, 2 Rds, Emerg Reload, 2 Rds",
             "startSignal": "beep",
             "readyPosition": "Holster",
             "rounds": 4
           },
           {
+            "audioId": "reg-s2",
             "type": "standard",
             "label": "Iteration 2",
             "parTime": 10,
-            "description": "Issue Challenge, Draw, 2 Rds, Emerg Reload, 2 Rds",
+            "description": "Challenge, Draw, 2 Rds, Emerg Reload, 2 Rds",
             "startSignal": "beep",
             "readyPosition": "Holster",
             "rounds": 4
@@ -46,26 +50,36 @@
       {
         "id": "reg-s3",
         "name": "Stage 3: 5 Meters",
-        "briefing": "Shooters on the line. Complete 2 timed blocks. Block 1: Draw and fire 2 CM, 1 head (5s). Block 2: High ready, fire 2 CM, 2 head (5s).",
+        "briefing": "Close-quarters precision drill. 3 timed blocks with progressively increasing round counts.",
         "drills": [
           {
+            "audioId": "reg-s3a",
             "type": "standard",
-            "label": "Block 1",
-            "parTime": 5, 
-            "description": "Draw, 2 CM, 1 Head",
+            "label": "3A — Draw & Engage",
+            "parTime": 4,
+            "description": "Draw, 1 CM, 1 Head, Holster",
             "startSignal": "beep",
             "readyPosition": "Holster",
-            "startPos": "HOLSTER",
+            "rounds": 2
+          },
+          {
+            "audioId": "reg-s3b",
+            "type": "standard",
+            "label": "3B — Draw & Engage",
+            "parTime": 5,
+            "description": "Draw, 2 CM, 1 Head, Return High Ready",
+            "startSignal": "beep",
+            "readyPosition": "Holster",
             "rounds": 3
           },
           {
+            "audioId": "reg-s3c",
             "type": "standard",
-            "label": "Block 2",
+            "label": "3C — High Ready",
             "parTime": 5,
             "description": "High Ready, 2 CM, 2 Head",
             "startSignal": "beep",
             "readyPosition": "High Ready",
-            "startPos": "HIGH READY",
             "rounds": 4
           }
         ]
@@ -73,26 +87,26 @@
       {
         "id": "reg-s4",
         "name": "Stage 4: National COF",
-        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 8 seconds to draw and fire 6 rounds at 7 meters.",
+        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 8 seconds to draw and fire 6 rounds at 7 meters. Shooters, be alert.",
         "drills": [
           {
+            "audioId": "reg-s4",
             "type": "standard",
             "label": "Attempt 1",
             "parTime": 8,
             "description": "Draw & Fire 6 rounds",
             "startSignal": "beep",
             "readyPosition": "Holster",
-            "startPos": "HOLSTER",
             "rounds": 6
           },
           {
+            "audioId": "reg-s4",
             "type": "standard",
             "label": "Attempt 2",
             "parTime": 8,
             "description": "Draw & Fire 6 rounds",
             "startSignal": "beep",
             "readyPosition": "Holster",
-            "startPos": "HOLSTER",
             "rounds": 6
           }
         ]
@@ -106,9 +120,10 @@
       {
         "id": "inst-s1",
         "name": "Stage 1: 15 Meters",
-        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 22 seconds to draw from the holster and fire 4 rounds standing, then 4 rounds kneeling at 15 meters.",
+        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 22 seconds to draw from the holster and fire 4 rounds standing, then 4 rounds kneeling at 15 meters. Shooters, be alert.",
         "drills": [
           {
+            "audioId": "inst-s1",
             "type": "standard",
             "parTime": 22,
             "description": "Draw, 4 Standing, 4 Kneeling",
@@ -121,9 +136,10 @@
       {
         "id": "inst-s2",
         "name": "Stage 2: 7 Meters",
-        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 8 seconds to start from high ready, fire 2 rounds, conduct a reload, then fire 2 more rounds at 7 meters.",
+        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 8 seconds to start from high ready, fire 2 rounds, conduct a reload, then fire 2 more rounds at 7 meters. Shooters, be alert.",
         "drills": [
           {
+            "audioId": "inst-s2",
             "type": "standard",
             "parTime": 8,
             "description": "High Ready, 2 rounds, Reload, 2 rounds",
@@ -136,9 +152,10 @@
       {
         "id": "inst-s3",
         "name": "Stage 3: 5 Meters",
-        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will complete 3 repetitions; for each rep you have 5 seconds to draw from the holster and fire 2 centre mass and 1 head at 5 meters.",
+        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will complete 3 repetitions; for each rep you have 5 seconds to draw from the holster and fire 2 centre mass and 1 head at 5 meters. Shooters, be alert.",
         "drills": [
           {
+            "audioId": "inst-s3",
             "type": "reps",
             "count": 3,
             "parTime": 5,
@@ -153,9 +170,10 @@
       {
         "id": "inst-s4",
         "name": "Stage 4: 25 Meters",
-        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 45 seconds to draw from the holster and fire 3 standing, 3 standing from cover, and 3 kneeling from cover at 25 meters.",
+        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 45 seconds to draw from the holster and fire 3 standing, 3 standing from cover, and 3 kneeling from cover at 25 meters. Shooters, be alert.",
         "drills": [
           {
+            "audioId": "inst-s4",
             "type": "standard",
             "parTime": 45,
             "description": "Draw, 3 Standing, 3 Standing Cover, 3 Kneeling Cover",

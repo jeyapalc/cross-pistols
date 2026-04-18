@@ -132,7 +132,7 @@ export default function StageRunner({ stage, onBack }) {
                     {/* Left: Action Button */}
                     <div className="w-full sm:w-auto">
                         {isIdle ? (
-                            <button onClick={() => start(stage.id)} className="group flex items-center space-x-3 hover:bg-white/5 py-2 px-4 transition-colors border border-emerald-500/30 hover:border-emerald-500/60">
+                            <button onClick={() => start(drill.audioId || stage.id)} className="group flex items-center space-x-3 hover:bg-white/5 py-2 px-4 transition-colors border border-emerald-500/30 hover:border-emerald-500/60">
                                 <div className="w-3 h-3 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
                                 <span className="font-mono tracking-[0.2em] text-sm text-emerald-400 group-hover:text-emerald-300">INITIATE</span>
                             </button>
