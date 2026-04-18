@@ -8,31 +8,40 @@ const TARGET_IMAGES = [
 
 export default function TargetDisplay({ status, expanded = false }) {
     const [targetImage, setTargetImage] = useState(TARGET_IMAGES[0]);
+    const [isFacing, setIsFacing] = useState(false);
 
-    // Pick a random target color on each new drill cycle
     useEffect(() => {
-        if (status === STATUS.READY_WAIT || status === STATUS.IDLE) {
+        if (status === STATUS.READY_WAIT) {
             const randomImg = TARGET_IMAGES[Math.floor(Math.random() * TARGET_IMAGES.length)];
             setTargetImage(randomImg);
+            setIsFacing(false);
+        } else if (status === STATUS.RUNNING) {
+            setIsFacing(true);
+        } else {
+            setIsFacing(false);
         }
     }, [status]);
 
     const containerStyle = expanded
-        ? { position: 'fixed', inset: '0', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', pointerEvents: 'none' }
-        : { height: '320px', width: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+        ? { perspective: '1200px', position: 'fixed', inset: '0', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', pointerEvents: 'none' }
+        : { perspective: '1000px', height: '320px', width: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 
-    const imgStyle = expanded
-        ? { width: 'min(70vw, 500px)', height: 'min(85vh, 900px)', objectFit: 'contain' }
-        : { width: '220px', height: '300px', objectFit: 'contain' };
+    const targetStyle = expanded
+        ? { width: 'min(70vw, 500px)', height: 'min(85vh, 900px)', transformStyle: 'preserve-3d', transition: 'transform 0.3s ease-out', transform: isFacing ? 'rotateY(0deg)' : 'rotateY(90deg)' }
+        : { width: '220px', height: '300px', transformStyle: 'preserve-3d', transition: 'transform 0.3s ease-out', transform: isFacing ? 'rotateY(0deg)' : 'rotateY(90deg)' };
 
     return (
         <div style={containerStyle}>
-            {/* Target SVG — always facing */}
-            <img
-                src={targetImage}
-                alt="Target"
-                style={imgStyle}
-            />
+            {/* 3D Target — rotates but no cardboard edge */}
+            <div style={{ ...targetStyle, position: 'relative' }}>
+                <div style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img
+                        src={targetImage}
+                        alt="Target"
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    />
+                </div>
+            </div>
 
             {/* Status Overlays */}
             {status === STATUS.READY_WAIT && (
