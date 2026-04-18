@@ -12,14 +12,38 @@ function App() {
     setSelectedStage(null);
   };
 
+  const TopNav = () => (
+    <header className="flex justify-between items-end border-b border-white/10 pb-4 mb-12 mt-4 relative">
+      {/* Corner crosshairs for navbar */}
+      <div className="absolute -left-4 -bottom-[1px] w-4 h-[1px] bg-white/30"></div>
+      <div className="absolute -left-[1px] -bottom-4 w-[1px] h-4 bg-white/30"></div>
+      <div className="absolute -right-4 -bottom-[1px] w-4 h-[1px] bg-white/30"></div>
+      <div className="absolute -right-[1px] -bottom-4 w-[1px] h-4 bg-white/30"></div>
+
+      <div className="flex space-x-8 items-baseline">
+        <h1 className="text-4xl font-black tracking-tighter cursor-pointer hover:text-neutral-300 transition-colors" onClick={resetSelection}>
+          CROSS PISTOLS
+        </h1>
+        <nav className="space-x-8 text-xs tracking-[0.25em] text-neutral-400 hidden md:block uppercase font-bold">
+          <span className="hover:text-white cursor-pointer transition-colors">Courses</span>
+          <span className="hover:text-white cursor-pointer transition-colors">Settings</span>
+          <span className="hover:text-white cursor-pointer transition-colors">About</span>
+        </nav>
+      </div>
+    </header>
+  );
+
   // View: Running a Stage
   if (selectedStage) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white font-sans">
-        <StageRunner
-          stage={selectedStage}
-          onBack={() => setSelectedStage(null)}
-        />
+      <div className="min-h-screen text-white p-4 sm:p-8 flex items-center justify-center">
+        <div className="w-full max-w-5xl">
+          <TopNav />
+          <StageRunner
+            stage={selectedStage}
+            onBack={() => setSelectedStage(null)}
+          />
+        </div>
       </div>
     );
   }
@@ -27,27 +51,37 @@ function App() {
   // View: Selecting a Stage (Inside a Course)
   if (selectedCourse) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white font-sans p-4">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div className="flex items-center space-x-4 mb-8">
-            <button onClick={resetSelection} className="text-gray-400 hover:text-white">← Courses</button>
-            <h1 className="text-3xl font-black tracking-tight">{selectedCourse.name}</h1>
+      <div className="min-h-screen text-white p-4 sm:p-8 flex items-center justify-center">
+        <div className="w-full max-w-5xl">
+          <TopNav />
+          
+          <div className="flex items-center space-x-4 mb-8 text-neutral-400 text-sm tracking-widest uppercase font-bold">
+            <button onClick={resetSelection} className="hover:text-white transition-colors">← Back to Courses</button>
+            <span className="text-neutral-600">/</span>
+            <span className="text-white">{selectedCourse.name}</span>
           </div>
 
-          <div className="grid gap-4">
-            {selectedCourse.stages.map(stage => (
+          <div className="grid gap-6 sm:grid-cols-2">
+            {selectedCourse.stages.map((stage, idx) => (
               <button
                 key={stage.id}
                 onClick={() => setSelectedStage(stage)}
-                className="bg-gray-800 p-6 rounded-xl text-left border border-gray-700 hover:border-blue-500 hover:bg-gray-750 transition-all group"
+                className="hud-border p-6 text-left hover:bg-white/5 transition-all group text-white"
               >
-                <div className="flex justify-between items-center">
-                  <span className="text-xl font-bold group-hover:text-blue-400">{stage.name}</span>
-                  <span className="bg-gray-900 px-3 py-1 rounded text-sm text-gray-400 font-mono">
-                    {stage.drills.length} Drill{stage.drills.length > 1 ? 's' : ''}
+                <div className="hud-crosshair-v"></div>
+                <div className="flex justify-between items-start mb-4">
+                  <span className="text-xl font-bold tracking-tight group-hover:text-neutral-300 uppercase">{stage.name}</span>
+                  <span className="text-xs font-mono text-neutral-500 tracking-widest uppercase">
+                    Stg {String(idx + 1).padStart(2, '0')}
                   </span>
                 </div>
-                <p className="text-gray-500 mt-2 text-sm line-clamp-1">{stage.briefing}</p>
+                <p className="text-neutral-400 text-xs font-mono leading-relaxed line-clamp-2">{stage.briefing}</p>
+                
+                <div className="mt-6 pt-4 border-t border-white/5 flex gap-4 text-xs font-mono text-neutral-500">
+                  <span>{stage.drills.length} DRILL{stage.drills.length > 1 ? 'S' : ''}</span>
+                  <span>/</span>
+                  <span>{stage.drills.reduce((acc, d) => acc + d.parTime, 0).toFixed(1)}S PAR</span>
+                </div>
               </button>
             ))}
           </div>
@@ -58,13 +92,13 @@ function App() {
 
   // View: Home / Course Selection
   return (
-    <div className="min-h-screen bg-gray-900 text-white font-sans p-4 flex flex-col items-center justify-center">
-      <div className="max-w-4xl w-full space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">
-            CROSS PISTOLS
-          </h1>
-          <p className="text-gray-400 text-lg uppercase tracking-widest">RCMP Course of Fire Timer</p>
+    <div className="min-h-screen text-white p-4 sm:p-8 flex items-center justify-center">
+      <div className="w-full max-w-5xl">
+        <TopNav />
+
+        <div className="mb-12">
+          <h2 className="text-neutral-500 font-mono text-xs uppercase tracking-[0.3em] mb-2">Select Course Module</h2>
+          <div className="w-12 h-[1px] bg-white/20"></div>
         </div>
 
         <CourseSelector

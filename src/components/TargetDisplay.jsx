@@ -4,7 +4,7 @@ import { STATUS } from '../engine/useStageTimer';
 // Preload images to avoid flickering
 const TARGET_IMAGES = [
     '/target-blue.png',
-    '/target-green.png' // Assuming the second uploaded image was renamed to this
+    '/target-green.png'
 ];
 
 export default function TargetDisplay({ status }) {
@@ -26,27 +26,27 @@ export default function TargetDisplay({ status }) {
     }, [status]);
 
     return (
-        <div className="relative w-full h-96 flex justify-center items-center perspective-1000">
+        <div className="relative w-full h-80 flex justify-center items-center perspective-1000 mb-8">
             {/* 3D Container */}
             <div
-                className={`relative w-64 h-full transition-transform duration-300 ease-out transform-style-3d ${isFacing ? 'rotate-y-0' : 'rotate-y-90'
+                className={`relative w-56 h-full transition-transform duration-300 ease-out transform-style-3d ${isFacing ? 'rotate-y-0' : 'rotate-y-90'
                     }`}
             >
                 {/* Target Face */}
                 <div className="absolute inset-0 backface-hidden flex items-center justify-center">
                     {/* Shadow for realism */}
-                    <div className={`absolute top-4 left-4 w-full h-full bg-black/20 blur-xl rounded-full transition-opacity duration-300 ${isFacing ? 'opacity-100' : 'opacity-0'}`}></div>
+                    <div className={`absolute top-4 left-4 w-full h-full bg-black/40 blur-2xl rounded-full transition-opacity duration-300 ${isFacing ? 'opacity-100' : 'opacity-0'}`}></div>
 
                     <img
                         src={targetImage}
                         alt="Shoot Target"
-                        className="w-full h-full object-contain filter drop-shadow-2xl"
+                        className="w-full h-full object-contain filter drop-shadow-2xl opacity-90 mix-blend-screen"
                     />
                 </div>
 
                 {/* Target Edge (simulating the side of the cardboard) */}
                 <div
-                    className="absolute inset-0 bg-gray-800 w-2 h-full left-1/2 -ml-1"
+                    className="absolute inset-0 bg-[#0d0d12] border-y border-white/5 w-1 h-full left-1/2 -ml-[0.5px]"
                     style={{ transform: 'rotateY(90deg)' }}
                 ></div>
             </div>
@@ -54,17 +54,21 @@ export default function TargetDisplay({ status }) {
             {/* Fallback/Overlay Text for states where target is edged but info is needed */}
             {!isFacing && status === STATUS.READY_WAIT && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <h2 className="text-4xl font-bold text-yellow-500 uppercase animate-pulse drop-shadow-lg tracking-widest">
-                        Standby...
-                    </h2>
+                    <div className="hud-border px-8 py-4 border-yellow-500/50 bg-yellow-900/10 backdrop-blur-md">
+                        <div className="hud-crosshair-v"></div>
+                        <h2 className="text-2xl font-mono font-bold text-yellow-500/80 uppercase animate-pulse tracking-[0.3em]">
+                            STANDBY...
+                        </h2>
+                    </div>
                 </div>
             )}
 
             {!isFacing && status === STATUS.IDLE && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="bg-red-900/80 border-4 border-red-500 p-6 rounded-xl animate-pulse">
-                        <h2 className="text-5xl font-black text-white uppercase tracking-widest">
-                            BE ALERT!
+                    <div className="hud-border px-8 py-6 border-red-500/30 bg-red-900/20 backdrop-blur-md animate-pulse">
+                        <div className="hud-crosshair-v"></div>
+                        <h2 className="text-3xl font-black text-rose-500 uppercase tracking-[0.4em] drop-shadow-[0_0_15px_rgba(244,63,94,0.5)]">
+                            BE ALERT
                         </h2>
                     </div>
                 </div>

@@ -1,8 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
 @import "tailwindcss";
 
 @layer base {
   body {
-    @apply bg-gray-900 text-white select-none overflow-x-hidden;
+    @apply bg-neutral-900 text-white select-none overflow-x-hidden font-sans;
+    font-family: 'Inter', sans-serif;
+    /* Moody geometric background simulating a blur */
+    background: radial-gradient(circle at 50% 50%, #2a2d33 0%, #111116 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  /* Monospace resets */
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
@@ -25,5 +36,54 @@
 
   .rotate-y-90 {
     transform: rotateY(90deg);
+  }
+
+  /* HUD Elements */
+  .hud-border {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(20, 20, 25, 0.4);
+    backdrop-filter: blur(12px);
+  }
+
+  /* Crosshairs at corners */
+  .hud-border::before,
+  .hud-border::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.5);
+  }
+  .hud-border::before {
+    top: -1px; left: -10px;
+    box-shadow: calc(100% + 14px) 0 rgba(255, 255, 255, 0.5); /* 14px because width is 6px, we need it to span across */
+  }
+  .hud-border::after {
+    bottom: -1px; left: -10px;
+    box-shadow: calc(100% + 14px) 0 rgba(255, 255, 255, 0.5);
+  }
+  
+  /* Vertical crosshairs */
+  .hud-crosshair-v {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+  }
+  .hud-crosshair-v::before,
+  .hud-crosshair-v::after {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.5);
+  }
+  .hud-crosshair-v::before {
+    left: -1px; top: -10px;
+    box-shadow: 0 calc(100% + 14px) rgba(255, 255, 255, 0.5);
+  }
+  .hud-crosshair-v::after {
+    right: -1px; top: -10px;
+    box-shadow: 0 calc(100% + 14px) rgba(255, 255, 255, 0.5);
   }
 }
