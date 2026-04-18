@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Anton&family=Bebas+Neue&family=Teko:wght@700&display=swap');
 @import "tailwindcss";
 
 @layer base {
@@ -90,5 +90,22 @@
   @keyframes loadingBar {
     0% { width: 0%; box-shadow: 0 0 0px rgba(16,185,129,0); }
     100% { width: 100%; box-shadow: 0 0 20px rgba(16,185,129,0.8); }
+  }
+
+  /* Massive background countdown timer */
+  .timer-text {
+    font-family: 'Bebas Neue', 'Anton', 'Teko', sans-serif;
+    font-size: min(28vw, 85vh);
+    line-height: 0.75;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    pointer-events: none;
   }
 }

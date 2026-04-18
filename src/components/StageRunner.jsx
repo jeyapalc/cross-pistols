@@ -112,6 +112,18 @@ export default function StageRunner({ stage, onBack }) {
                 )}
             </div>
 
+            {/* ── Background Countdown Timer (behind target, only during RUNNING) ── */}
+            {isRunning && (
+                <div className="fixed inset-0 z-30 flex items-center justify-center bg-black overflow-hidden">
+                    <span
+                        className="timer-text"
+                        style={{ color: (timeLeft / drill.parTime) <= 0.10 ? '#5C1A1A' : '#FF3B30', opacity: (timeLeft / drill.parTime) <= 0.10 ? 0.6 : 0.15, transition: 'color 0.5s ease, opacity 0.5s ease' }}
+                    >
+                        {timeLeft.toFixed(1)}
+                    </span>
+                </div>
+            )}
+
             {/* ── Target ── */}
             <div className={`${fade} ${isActive ? 'fixed inset-0 z-40' : 'flex-1 min-h-[250px] flex items-center justify-center'}`}>
                 <TargetDisplay status={status} expanded={isActive} />
