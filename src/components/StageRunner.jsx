@@ -162,35 +162,73 @@ export default function StageRunner({ stage, onBack }) {
                 </div>
             </div>
 
-            {/* Secondary Timecodes/Locations style Data */}
-             <div className="grid grid-cols-3 gap-4 pt-6 px-4">
-                <div className="flex flex-col space-y-2">
-                    <span className="font-mono text-[10px] text-neutral-500">O4:00:34</span>
-                    <span className="font-bold uppercase text-xs tracking-widest text-neutral-300">DRILL PAR</span>
-                    <div className="font-mono text-[10px] text-neutral-600 leading-relaxed uppercase">
-                        SECTOR 1<br/>
-                        {drill.parTime.toFixed(2)} SEC<br/>
-                        ACTIVE
+            {/* Primary Drill Mechanics Data Blocks */}
+             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-6 px-4 pb-2">
+                
+                {/* Distance Block */}
+                <div className="flex items-center space-x-3 sm:space-x-4 hud-border p-3 sm:p-4 bg-[#09090b]/50 border-white/5">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <circle cx="12" cy="12" r="3" />
+                            <line x1="12" y1="2" x2="12" y2="5" />
+                            <line x1="12" y1="19" x2="12" y2="22" />
+                            <line x1="2" y1="12" x2="5" y2="12" />
+                            <line x1="19" y1="12" x2="22" y2="12" />
+                        </svg>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="font-bold uppercase text-[10px] tracking-widest text-neutral-400">Range</span>
+                        <span className="font-mono text-sm sm:text-base text-white">{stage.name.match(/(\d+)\s*m/i)?.[1] || stage.name.match(/(\d+)\s*Meters/i)?.[1] || '--'} Meters</span>
                     </div>
                 </div>
-                 <div className="flex flex-col space-y-2">
-                    <span className="font-mono text-[10px] text-neutral-500">O4:00:34</span>
-                    <span className="font-bold uppercase text-xs tracking-widest text-neutral-300">STAGE PAR</span>
-                    <div className="font-mono text-[10px] text-neutral-600 leading-relaxed uppercase">
-                        TOTAL REQ<br/>
-                        {stage.drills.reduce((acc, d) => acc + d.parTime, 0).toFixed(2)} SEC<br/>
-                        PENDING
+
+                {/* Time Block */}
+                <div className="flex items-center space-x-3 sm:space-x-4 hud-border p-3 sm:p-4 bg-[#09090b]/50 border-white/5">
+                    <div className="w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="font-bold uppercase text-[10px] tracking-widest text-neutral-400">Drill Par Time</span>
+                        <span className="font-mono text-sm sm:text-base text-white">{drill.parTime.toFixed(1)} Sec</span>
                     </div>
                 </div>
-                 <div className="flex flex-col space-y-2">
-                    <span className="font-mono text-[10px] text-neutral-500">SYS.ONL</span>
-                    <span className="font-bold uppercase text-xs tracking-widest text-neutral-300">TARGET</span>
-                    <div className="font-mono text-[10px] text-neutral-600 leading-relaxed uppercase">
-                        DP-1 PROFILE<br/>
-                        RANDOMIZED EDGE<br/>
-                        {drill.startPos || 'PORT ARMS'}
+
+                {/* Stance Block */}
+                <div className="flex items-center space-x-3 sm:space-x-4 hud-border p-3 sm:p-4 bg-[#09090b]/50 border-white/5">
+                    <div className="w-8 h-8 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+                            <path d="M5 22v-5l6-3v-4H7V6h10v4h-4v4l6 3v5" />
+                        </svg>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="font-bold uppercase text-[10px] tracking-widest text-neutral-400">Shooter Pos</span>
+                        <span className="font-mono text-sm sm:text-base text-white truncate max-w-[120px]" title={drill.readyPosition?.toUpperCase() || 'STANDING'}>
+                            {drill.readyPosition?.toUpperCase() || 'STANDING'}
+                        </span>
                     </div>
                 </div>
+
+                {/* Facings Block (Only rendering if multi-facing targets exist) */}
+                {stage.drills.length > 1 && (
+                    <div className="flex items-center space-x-3 sm:space-x-4 hud-border p-3 sm:p-4 bg-[#09090b]/50 border-white/5">
+                        <div className="w-8 h-8 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-500">
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                                <polyline points="2 17 12 22 22 17" />
+                                <polyline points="2 12 12 17 22 12" />
+                            </svg>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-bold uppercase text-[10px] tracking-widest text-neutral-400">Facings Sync</span>
+                            <span className="font-mono text-sm sm:text-base text-white">[{currentDrillIndex + 1}/{stage.drills.length}] Exec</span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             </div>
