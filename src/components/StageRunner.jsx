@@ -93,8 +93,8 @@ export default function StageRunner({ stage, onBack }) {
                 )}
             </div>
 
-            {/* ── Background Countdown Timer (behind target, RUNNING only) ── */}
-            {isRunning && (
+            {/* ── Background Countdown Timer (stays locked at 0.0 on finish) ── */}
+            {(isRunning || isFinished) && (
                 <div className="fixed inset-0 z-30 flex items-center justify-center bg-black overflow-hidden">
                     <span
                         className="timer-text"
