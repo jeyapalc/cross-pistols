@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { TOTP } from 'totp-generator';
 
-const REQUIRED_TOKEN = 'RCMP-TACTICAL';
+const SECRET_KEY = 'JBSWY3DPEHPK3PXP';
 const REQUIRED_DOMAIN = '@rcmp-grc.gc.ca';
 
 export default function LoginScreen({ onLogin }) {
@@ -8,7 +9,7 @@ export default function LoginScreen({ onLogin }) {
     const [token, setToken] = useState('');
     const [error, setError] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
 
@@ -20,12 +21,16 @@ export default function LoginScreen({ onLogin }) {
             return;
         }
 
-        if (cleanToken !== REQUIRED_TOKEN) {
-            setError('Invalid access token provided. Access denied.');
-            return;
+        try {
+            const { otp } = await TOTP.generate(SECRET_KEY);
+            if (cleanToken !== otp) {
+                setError('Invalid 6-digit TOTP pin provided. Access denied or token expired.');
+                return;
+            }
+            onLogin();
+        } catch (err) {
+            setError('System error processing authentication token.');
         }
-
-        onLogin();
     };
 
     return (
@@ -62,15 +67,16 @@ export default function LoginScreen({ onLogin }) {
 
                         <div>
                             <label className="block font-mono text-[10px] text-neutral-500 uppercase tracking-widest mb-1">
-                                Access Token
+                                6-Digit Authenticator Pin
                             </label>
                             <input
-                                type="password"
+                                type="text"
+                                maxLength="6"
                                 required
                                 value={token}
-                                onChange={(e) => setToken(e.target.value)}
-                                className="w-full bg-black/50 border border-white/10 text-white font-mono p-3 outline-none focus:border-emerald-500/50 transition-colors placeholder:text-neutral-700"
-                                placeholder="Enter Token"
+                                onChange={(e) => setToken(e.target.value.replace(/\D/g, ''))}
+                                className="w-full bg-black/50 border border-white/10 text-white font-mono p-3 outline-none focus:border-emerald-500/50 transition-colors placeholder:text-neutral-700 tracking-[0.5em] text-center"
+                                placeholder="000 000"
                             />
                         </div>
                     </div>
