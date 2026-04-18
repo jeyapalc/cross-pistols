@@ -41,34 +41,22 @@ class AudioEngine {
         this.playBeep(0.7, 800, 'sawtooth');
     }
 
-    // 100% Free native browser text-to-speech API (no tokens)
-    speak(text) {
+    // Play ultra-realistic pre-rendered MP3 from EdgeTTS
+    playScript(stageId) {
         return new Promise((resolve) => {
-            if (!window.speechSynthesis) {
-                console.warn("Speech Synthesis not supported in this browser.");
-                resolve();
-                return;
-            }
-
-            // Cancel any ongoing speech
-            window.speechSynthesis.cancel();
-
-            const utterance = new SpeechSynthesisUtterance(text);
+            const audioPath = `${import.meta.env.BASE_URL}audio/${stageId}.mp3`;
+            const audioObj = new Audio(audioPath);
             
-            // Try to find a good authoritative English voice
-            const voices = window.speechSynthesis.getVoices();
-            const preferredVoice = voices.find(v => v.lang.includes('en-US') && (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Microsoft')));
-            if (preferredVoice) {
-                utterance.voice = preferredVoice;
-            }
-
-            utterance.rate = 1.0; 
-            utterance.pitch = 1.0;
-
-            utterance.onend = () => resolve();
-            utterance.onerror = () => resolve(); // proceed even if it fails
-
-            window.speechSynthesis.speak(utterance);
+            audioObj.onended = () => resolve();
+            audioObj.onerror = () => {
+                console.error("Failed to load stage script MP3:", audioPath);
+                resolve();
+            };
+            
+            audioObj.play().catch(err => {
+                console.error("Autoplay likely blocked or file not found:", err);
+                resolve();
+            });
         });
     }
 }

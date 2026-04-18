@@ -104,7 +104,7 @@ export default function StageRunner({ stage, onBack }) {
                     {/* Status Indicator & Action */}
                     <div className="w-full sm:w-48">
                         {isIdle ? (
-                            <button onClick={() => start(stage.briefing)} className="group flex items-center space-x-3 w-full hover:bg-white/5 py-2 px-3 transition-colors border border-transparent hover:border-white/10">
+                            <button onClick={() => start(stage.id)} className="group flex items-center space-x-3 w-full hover:bg-white/5 py-2 px-3 transition-colors border border-transparent hover:border-white/10">
                                 <div className="w-3 h-3 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
                                 <span className="font-mono tracking-[0.2em] text-sm group-hover:text-white transition-colors">INITIATE</span>
                             </button>

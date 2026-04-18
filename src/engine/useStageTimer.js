@@ -23,14 +23,14 @@ export function useStageTimer(drill) {
         if (timerRef.current) clearInterval(timerRef.current);
     }, [drill]);
 
-    const startDrill = useCallback(async (briefingText) => {
+    const startDrill = useCallback(async (stageId) => {
         if (!drill) return;
 
         audio.init(); // Ensure audio context is ready
         
-        if (briefingText) {
+        if (stageId) {
             setStatus(STATUS.BRIEFING);
-            await audio.speak(`${briefingText}. Shooters, be alert!`);
+            await audio.playScript(stageId);
         }
 
         // Voice script is done, drop into standard randomized standby sequence
