@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useStageTimer, STATUS } from '../engine/useStageTimer';
 import TargetDisplay from './TargetDisplay';
 
-export default function StageRunner({ stage, onBack }) {
+const ProEnvironment = lazy(() => import('./ProEnvironment'));
+
+export default function StageRunner({ stage, onBack, isPro = false }) {
     const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
     const drill = stage.drills[currentDrillIndex];
 
@@ -100,6 +102,13 @@ export default function StageRunner({ stage, onBack }) {
                 )}
             </div>
 
+            {/* ── PRO 3D Environment (renders whenever drill is not idle) ── */}
+            {isPro && !isIdle && (
+                <Suspense fallback={null}>
+                    <ProEnvironment modelName="scene.glb" />
+                </Suspense>
+            )}
+
             {/* ── Background Countdown Timer (stays locked at 0.0 on finish) ── */}
             {(isRunning || isFinished) && (
                 <div className="fixed inset-0 z-30 flex items-center justify-center bg-black overflow-hidden">
@@ -118,7 +127,7 @@ export default function StageRunner({ stage, onBack }) {
 
             {/* ── Target ── */}
             <div className={`${fade} ${isActive ? 'fixed inset-0 z-40' : 'flex-1 min-h-[250px] flex items-center justify-center'}`}>
-                <TargetDisplay status={status} expanded={isActive} />
+                <TargetDisplay status={status} expanded={isActive} pro={isPro && isActive} />
             </div>
 
             {/* ── Bottom Actions ── */}

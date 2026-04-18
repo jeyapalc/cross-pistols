@@ -7,6 +7,7 @@ function App() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedStage, setSelectedStage] = useState(null);
   const [isReady, setIsReady] = useState(false);
+  const [activeTab, setActiveTab] = useState('Courses');
 
   useEffect(() => {
       const t = setTimeout(() => setIsReady(true), 1500);
@@ -51,11 +52,12 @@ function App() {
       <div className="absolute -right-[1px] -bottom-4 w-[1px] h-4 bg-white/30"></div>
 
       <div className="flex space-x-8 items-baseline">
-        <h1 className="text-4xl font-black tracking-tighter cursor-pointer hover:text-neutral-300 transition-colors" onClick={resetSelection}>
+        <h1 className="text-4xl font-black tracking-tighter cursor-pointer hover:text-neutral-300 transition-colors" onClick={() => { resetSelection(); setActiveTab('Courses'); }}>
           CROSS PISTOLS
         </h1>
         <nav className="space-x-8 text-xs tracking-[0.25em] text-neutral-400 hidden md:block uppercase font-bold">
-          <span className="hover:text-white cursor-pointer transition-colors">Courses</span>
+          <button onClick={() => { resetSelection(); setActiveTab('Courses'); }} className={`${activeTab === 'Courses' ? 'text-white' : 'hover:text-white'} transition-colors`}>Courses</button>
+          <button onClick={() => { resetSelection(); setActiveTab('PRO'); }} className={`${activeTab === 'PRO' ? 'text-emerald-400' : 'hover:text-white'} transition-colors`}>PRO</button>
           <span className="hover:text-white cursor-pointer transition-colors">Settings</span>
           <span className="hover:text-white cursor-pointer transition-colors">About</span>
         </nav>
@@ -71,6 +73,7 @@ function App() {
           <StageRunner
             stage={selectedStage}
             onBack={() => setSelectedStage(null)}
+            isPro={activeTab === 'PRO'}
           />
         </div>
       </div>
@@ -120,18 +123,24 @@ function App() {
   }
 
   // View: Home / Course Selection
+  const displayCourses = activeTab === 'PRO' 
+    ? coursesData.filter(c => c.id === 'regular') 
+    : coursesData;
+
   return (
     <div className="min-h-screen text-white p-4 sm:p-8 flex items-center justify-center">
       <div className="w-full max-w-5xl">
         <TopNav />
 
         <div className="mb-12">
-          <h2 className="text-neutral-500 font-mono text-xs uppercase tracking-[0.3em] mb-2">Select Course Module</h2>
+          <h2 className="text-neutral-500 font-mono text-xs uppercase tracking-[0.3em] mb-2">
+            {activeTab === 'PRO' ? 'PRO Environments' : 'Select Course Module'}
+          </h2>
           <div className="w-12 h-[1px] bg-white/20"></div>
         </div>
 
         <CourseSelector
-          courses={coursesData}
+          courses={displayCourses}
           onSelect={setSelectedCourse}
         />
       </div>

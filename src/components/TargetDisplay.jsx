@@ -6,7 +6,7 @@ const TARGET_IMAGES = [
     `${import.meta.env.BASE_URL}target-green.svg`
 ];
 
-export default function TargetDisplay({ status, expanded = false }) {
+export default function TargetDisplay({ status, expanded = false, pro = false }) {
     const [targetImage, setTargetImage] = useState(TARGET_IMAGES[0]);
     const [isFacing, setIsFacing] = useState(false);
 
@@ -35,7 +35,19 @@ export default function TargetDisplay({ status, expanded = false }) {
             {/* 3D Target */}
             <div style={{ ...targetStyle, position: 'relative' }}>
                 <div style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <img src={targetImage} alt="Target" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    <img 
+                        src={targetImage} 
+                        alt="Target" 
+                        style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            objectFit: 'contain',
+                            ...(pro && isFacing ? {
+                                filter: 'brightness(0.85) contrast(1.1) sepia(0.08)',
+                                dropShadow: '0 8px 30px rgba(0,0,0,0.6)',
+                            } : {}),
+                        }} 
+                    />
                 </div>
             </div>
 
