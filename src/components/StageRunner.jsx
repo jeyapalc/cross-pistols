@@ -27,8 +27,27 @@ export default function StageRunner({ stage, onBack }) {
         }
     };
 
+    const hideDistractions = isStandby || isRunning;
+
     return (
-        <div className="flex flex-col h-full space-y-6 animate-fade-in relative z-10">
+        <div className="flex flex-col h-full animate-fade-in relative z-10 w-full overflow-hidden">
+            
+            {/* Background Giant Timer (Only visible when active) */}
+            {hideDistractions && (
+                <div className="fixed inset-0 flex items-center justify-center z-[5] pointer-events-none bg-[#09090b]">
+                    <span className="font-mono font-black text-white/10 tracking-tighter select-none mix-blend-screen leading-none" style={{ fontSize: '30vw' }}>
+                        {isStandby ? drill.parTime.toFixed(1) : timeLeft.toFixed(1)}
+                    </span>
+                    {drill.type === 'reps' && (
+                        <div className="absolute top-8 font-mono text-xl text-white/50 tracking-[0.3em] uppercase">
+                            Repetition Based ({drill.count}x)
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Distractions Container - Top */}
+            <div className={`transition-opacity duration-300 w-full flex flex-col space-y-6 flex-shrink-0 ${hideDistractions ? 'opacity-0 pointer-events-none absolute' : 'opacity-100 relative z-20'}`}>
             
             {/* Round Status Bar (Fighting Game Style) */}
             {stage.drills.length > 1 && (
@@ -65,10 +84,15 @@ export default function StageRunner({ stage, onBack }) {
                 </div>
             </div>
 
-            {/* Target Display Area */}
-            <div className="flex-1 min-h-[300px] flex items-center justify-center relative mt-8">
-                <TargetDisplay status={status} />
             </div>
+
+            {/* Target Display Area */}
+            <div className={`flex items-center justify-center relative transition-all duration-300 ${hideDistractions ? 'absolute inset-0 z-10' : 'flex-1 min-h-[300px] mt-8 z-0'}`}>
+                <TargetDisplay status={status} fullScreen={hideDistractions} />
+            </div>
+
+            {/* Distractions Container - Bottom */}
+            <div className={`transition-opacity duration-300 w-full flex flex-col flex-shrink-0 ${hideDistractions ? 'opacity-0 pointer-events-none absolute' : 'opacity-100 relative z-20'}`}>
 
             {/* Tactical Status Playback Bar */}
             <div className="hud-border p-4 sm:p-6 mt-8">
@@ -156,6 +180,8 @@ export default function StageRunner({ stage, onBack }) {
                         {drill.startPos || 'PORT ARMS'}
                     </div>
                 </div>
+            </div>
+
             </div>
 
         </div>
