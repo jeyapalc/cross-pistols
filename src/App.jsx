@@ -2,12 +2,21 @@ import { useState, useEffect } from 'react';
 import coursesData from './data/courses.json';
 import CourseSelector from './components/CourseSelector';
 import StageRunner from './components/StageRunner';
+import LoginScreen from './components/LoginScreen';
 
 function App() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedStage, setSelectedStage] = useState(null);
   const [isReady, setIsReady] = useState(false);
   const [activeTab, setActiveTab] = useState('Courses');
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('crossPistolsAuth') === 'true';
+  });
+
+  const handleLogin = () => {
+    localStorage.setItem('crossPistolsAuth', 'true');
+    setIsAuthenticated(true);
+  };
 
   useEffect(() => {
       const t = setTimeout(() => setIsReady(true), 1500);
@@ -41,6 +50,10 @@ function App() {
               </div>
           </div>
       );
+  }
+
+  if (!isAuthenticated) {
+      return <LoginScreen onLogin={handleLogin} />;
   }
 
   const TopNav = () => (
