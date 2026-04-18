@@ -12,6 +12,12 @@ export default function StageRunner({ stage, onBack }) {
     const isIdle = status === STATUS.IDLE;
     const isRunning = status === STATUS.RUNNING;
     const isStandby = status === STATUS.READY_WAIT;
+    const isBriefing = status === STATUS.BRIEFING;
+
+    // Cinematic Mode = Any active flow state (Briefing, Standby, Running)
+    const isCinematicMode = isBriefing || isStandby || isRunning;
+    // Standby/Run mode hides even more stuff (like bottom panel during active sequence)
+    const isActiveOrStandby = isStandby || isRunning;
 
     const handleNext = () => {
         if (currentDrillIndex < stage.drills.length - 1) {
@@ -32,9 +38,14 @@ export default function StageRunner({ stage, onBack }) {
     return (
         <div className="flex flex-col h-full animate-fade-in relative z-10 w-full overflow-hidden">
             
-            {/* Background Giant Timer (Only visible when active) */}
-            {hideDistractions && (
-                <div className="fixed inset-0 flex items-center justify-center z-[5] pointer-events-none bg-[#09090b] overflow-hidden">
+            {/* Cinematic Blackout Backdrop */}
+            {isCinematicMode && (
+                <div className="fixed inset-0 bg-[#060608] z-[55] pointer-events-none transition-opacity duration-[800ms]"></div>
+            )}
+
+            {/* Background Giant Timer (Only visible when active or standby) */}
+            {isActiveOrStandby && (
+                <div className="fixed inset-0 flex items-center justify-center z-[56] pointer-events-none bg-[#09090b] overflow-hidden">
                     <span className="font-mono font-black text-white/5 select-none leading-none" style={{ fontSize: '75vw', marginLeft: '-5vw', letterSpacing: '-0.15em' }}>
                         {isStandby ? drill.parTime.toFixed(1) : timeLeft.toFixed(1)}
                     </span>
@@ -47,7 +58,7 @@ export default function StageRunner({ stage, onBack }) {
             )}
 
             {/* Distractions Container - Top */}
-            <div className={`transition-opacity duration-300 w-full flex flex-col space-y-6 flex-shrink-0 ${hideDistractions ? 'opacity-0 pointer-events-none absolute' : 'opacity-100 relative z-20'}`}>
+            <div className={`transition-all duration-[800ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] w-full flex flex-col space-y-6 flex-shrink-0 ${isCinematicMode ? 'opacity-0 -translate-y-20 pointer-events-none absolute' : 'opacity-100 translate-y-0 relative z-20'}`}>
             
             {/* Round Status Bar (Fighting Game Style) */}
             {stage.drills.length > 1 && (
@@ -87,12 +98,12 @@ export default function StageRunner({ stage, onBack }) {
             </div>
 
             {/* Target Display Area */}
-            <div className={`flex items-center justify-center relative transition-all duration-300 ${hideDistractions ? 'absolute inset-0 z-10' : 'flex-1 min-h-[300px] mt-8 z-0'}`}>
-                <TargetDisplay status={status} fullScreen={hideDistractions} />
+            <div className={`flex items-center justify-center relative transition-all duration-[800ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isCinematicMode ? 'fixed inset-0 z-[60] pointer-events-none' : 'flex-1 min-h-[300px] mt-8 z-0 w-full'}`}>
+                <TargetDisplay status={status} fullScreen={isCinematicMode} subtitle={stage.briefing} />
             </div>
 
             {/* Distractions Container - Bottom */}
-            <div className={`transition-opacity duration-300 w-full flex flex-col flex-shrink-0 ${hideDistractions ? 'opacity-0 pointer-events-none absolute' : 'opacity-100 relative z-20'}`}>
+            <div className={`transition-all duration-[800ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] w-full flex flex-col flex-shrink-0 ${isActiveOrStandby ? 'opacity-0 translate-y-20 pointer-events-none absolute bottom-0' : isCinematicMode ? 'fixed inset-x-0 bottom-0 z-[70] p-4 sm:p-6 pb-8 bg-gradient-to-t from-[#060608] via-[#060608]/90 to-transparent' : 'opacity-100 translate-y-0 relative z-20 mt-8'}`}>
 
             {/* Tactical Status Playback Bar */}
             <div className="hud-border p-4 sm:p-6 mt-8">
