@@ -69,6 +69,33 @@
             "rounds": 4
           }
         ]
+      },
+      {
+        "id": "reg-s4",
+        "name": "Stage 4: National COF",
+        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, you will have 8 seconds to draw and fire 6 rounds at 7 meters.",
+        "drills": [
+          {
+            "type": "standard",
+            "label": "Attempt 1",
+            "parTime": 8,
+            "description": "Draw & Fire 6 rounds",
+            "startSignal": "beep",
+            "readyPosition": "Holster",
+            "startPos": "HOLSTER",
+            "rounds": 6
+          },
+          {
+            "type": "standard",
+            "label": "Attempt 2",
+            "parTime": 8,
+            "description": "Draw & Fire 6 rounds",
+            "startSignal": "beep",
+            "readyPosition": "Holster",
+            "startPos": "HOLSTER",
+            "rounds": 6
+          }
+        ]
       }
     ]
   },
