@@ -72,4 +72,4 @@ export default function ProEnvironment({ modelName = 'scene.glb' }) {
 }
 
 // Preload the default scene to avoid mid-drill stutter where possible
-useGLTF.preload(`${BASE}Snow.glb`);
+useGLTF.preload(`${BASE}Snow_squashed.glb`);
