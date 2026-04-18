@@ -1,6 +1,6 @@
 import { Suspense, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { useGLTF, Environment } from '@react-three/drei';
+import { useGLTF, Environment, Loader } from '@react-three/drei';
 import * as THREE from 'three';
 
 const BASE = import.meta.env.BASE_URL;
@@ -63,6 +63,10 @@ export default function ProEnvironment({ modelName = 'scene.glb' }) {
                     <GLBScene modelPath={modelPath} />
                 </Suspense>
             </Canvas>
+            <Loader 
+                containerStyles={{ zIndex: 50, background: 'rgba(0,0,0,0.8)' }} 
+                dataInterpolation={(p) => `Loading Environment Assets: ${p.toFixed(0)}%`}
+            />
         </div>
     );
 }
