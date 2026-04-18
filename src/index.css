@@ -86,4 +86,9 @@
     right: -1px; top: -10px;
     box-shadow: 0 calc(100% + 14px) rgba(255, 255, 255, 0.5);
   }
+
+  @keyframes loadingBar {
+    0% { width: 0%; box-shadow: 0 0 0px rgba(16,185,129,0); }
+    100% { width: 100%; box-shadow: 0 0 20px rgba(16,185,129,0.8); }
+  }
 }

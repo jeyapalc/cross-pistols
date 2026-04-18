@@ -21,13 +21,23 @@ function App() {
   if (!isReady) {
       return (
           <div className="fixed inset-0 bg-[#0d0d12] flex flex-col items-center justify-center z-50">
+              {/* Logo with white background removed via inversion & blend mode */}
               <img 
                   src="/loading-logo.png" 
                   alt="Loading" 
-                  className="w-48 h-48 sm:w-64 sm:h-64 object-contain animate-spin" 
-                  style={{ animationDuration: '0.5s' }}
+                  className="w-48 h-48 sm:w-64 sm:h-64 object-contain mix-blend-screen invert opacity-80" 
               />
-              <div className="mt-8 font-mono tracking-[0.5em] text-neutral-500 uppercase text-sm animate-pulse">Initializing...</div>
+              
+              {/* Tactical Loading Bar */}
+              <div className="mt-8 w-48 sm:w-64">
+                <div className="flex justify-between items-center mb-2">
+                    <span className="font-mono tracking-[0.5em] text-neutral-500 uppercase text-[10px]">Initializing System</span>
+                    <span className="font-mono text-emerald-500 text-[10px] animate-pulse">ONL</span>
+                </div>
+                <div className="w-full h-[2px] bg-white/10 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 h-full bg-emerald-500 animate-[loadingBar_1.5s_ease-out_forwards]"></div>
+                </div>
+              </div>
           </div>
       );
   }
