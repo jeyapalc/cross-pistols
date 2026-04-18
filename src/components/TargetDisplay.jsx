@@ -42,9 +42,12 @@ export default function TargetDisplay({ status, expanded = false }) {
             {/* BE READY — red strobe warning */}
             {status === STATUS.READY_WAIT && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="strobe-warning">
-                        <div className="hud-border px-8 py-5 border-red-600/70 bg-red-950/40 backdrop-blur-md shadow-[0_0_60px_rgba(220,38,38,0.5)]">
-                            <h2 className="text-2xl sm:text-3xl font-black text-red-500 uppercase tracking-[0.4em] drop-shadow-[0_0_25px_rgba(220,38,38,0.7)]">
+                    <div className="strobe-warning pointer-events-none">
+                        <div className="relative overflow-hidden px-12 py-6 border-2 border-red-500 bg-red-950/60 shadow-[inset_0_0_60px_rgba(220,38,38,0.8),0_0_40px_rgba(220,38,38,0.5)]">
+                            <div className="absolute inset-0 opacity-[0.12]" style={{
+                                backgroundImage: 'repeating-linear-gradient(45deg, #ffffff 0, #ffffff 1px, transparent 1px, transparent 10px), repeating-linear-gradient(-45deg, #ffffff 0, #ffffff 1px, transparent 1px, transparent 10px)'
+                            }}></div>
+                            <h2 className="relative z-10 text-3xl sm:text-4xl font-black text-white uppercase tracking-[0.4em] drop-shadow-[0_0_15px_rgba(220,38,38,1)]">
                                 BE READY
                             </h2>
                         </div>
@@ -55,9 +58,12 @@ export default function TargetDisplay({ status, expanded = false }) {
             {/* BE ALERT — chain wait strobe */}
             {status === STATUS.CHAIN_WAIT && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="strobe-warning">
-                        <div className="hud-border px-8 py-5 border-red-600/70 bg-red-950/40 backdrop-blur-md shadow-[0_0_60px_rgba(220,38,38,0.5)]">
-                            <h2 className="text-2xl sm:text-3xl font-black text-red-500 uppercase tracking-[0.4em] drop-shadow-[0_0_25px_rgba(220,38,38,0.7)]">
+                    <div className="strobe-warning pointer-events-none">
+                        <div className="relative overflow-hidden px-12 py-6 border-2 border-red-500 bg-red-950/60 shadow-[inset_0_0_60px_rgba(220,38,38,0.8),0_0_40px_rgba(220,38,38,0.5)]">
+                            <div className="absolute inset-0 opacity-[0.12]" style={{
+                                backgroundImage: 'repeating-linear-gradient(45deg, #ffffff 0, #ffffff 1px, transparent 1px, transparent 10px), repeating-linear-gradient(-45deg, #ffffff 0, #ffffff 1px, transparent 1px, transparent 10px)'
+                            }}></div>
+                            <h2 className="relative z-10 text-3xl sm:text-4xl font-black text-white uppercase tracking-[0.4em] drop-shadow-[0_0_15px_rgba(220,38,38,1)]">
                                 BE ALERT
                             </h2>
                         </div>
