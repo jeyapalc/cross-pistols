@@ -18,8 +18,13 @@ function GLBScene({ modelPath }) {
         });
     }, [scene]);
 
-    // Position the background slightly downward and backward so it doesn't clip the target
-    return <primitive object={scene} position={[0, -2, -10]} />;
+    // Position the background deep into the Z-axis so the camera sits in the parking lot foreground
+    // You can independently tweak [x, y, z] and rotation to dial in the perfect framing of the entrance
+    return (
+        <group position={[0, -3, -35]} rotation={[0, 0, 0]}>
+            <primitive object={scene} />
+        </group>
+    );
 }
 
 export default function ProEnvironment({ modelName = 'scene.glb' }) {
