@@ -13,7 +13,10 @@ export default function StageRunner({ stage, onBack }) {
     const isIdle = status === STATUS.IDLE;
     const isRunning = status === STATUS.RUNNING;
     const isChainWait = status === STATUS.CHAIN_WAIT;
-    const isActive = status === STATUS.BRIEFING || status === STATUS.READY_WAIT || isRunning || isChainWait;
+    const isBriefing = status === STATUS.BRIEFING;
+    // Chrome hides only on standby/running/chain — stays visible during briefing
+    const isHidden = status === STATUS.READY_WAIT || isRunning || isChainWait;
+    const isActive = isBriefing || isHidden;
 
     const rangeMeters = stage.name.match(/(\d+)\s*m/i)?.[1] || '--';
     const isLastDrill = currentDrillIndex >= stage.drills.length - 1;
@@ -42,7 +45,7 @@ export default function StageRunner({ stage, onBack }) {
         <div className="flex flex-col h-full animate-fade-in w-full space-y-6 relative">
 
             {/* ── Header ── */}
-            <div className={`flex items-center justify-between ${fade} ${isActive ? 'opacity-0 -translate-y-8 pointer-events-none' : ''}`}>
+            <div className={`flex items-center justify-between ${fade} ${isHidden ? 'opacity-0 -translate-y-8 pointer-events-none' : ''}`}>
                 <div>
                     <h2 className="text-2xl font-black uppercase tracking-tight">{stage.name}</h2>
                     <p className="font-mono text-xs text-neutral-500 mt-1 uppercase tracking-widest">
@@ -57,7 +60,7 @@ export default function StageRunner({ stage, onBack }) {
 
             {/* ── Drill Pips ── */}
             {stage.drills.length > 1 && (
-                <div className={`flex w-full items-center space-x-2 ${fade} ${isActive ? 'opacity-0 -translate-y-4 pointer-events-none' : ''}`}>
+                <div className={`flex w-full items-center space-x-2 ${fade} ${isHidden ? 'opacity-0 -translate-y-4 pointer-events-none' : ''}`}>
                     {stage.drills.map((_, idx) => (
                         <div key={idx} className={`h-1.5 flex-1 max-w-[60px] border transition-all duration-300 ${idx < currentDrillIndex ? 'bg-emerald-500/80 border-emerald-400' : idx === currentDrillIndex ? 'bg-white/20 border-white' : 'bg-transparent border-white/20'}`} />
                     ))}
@@ -65,7 +68,7 @@ export default function StageRunner({ stage, onBack }) {
             )}
 
             {/* ── Drill Info (text-based HUD, no icons) ── */}
-            <div className={`hud-border p-5 sm:p-6 ${fade} ${isActive ? 'opacity-0 -translate-y-4 pointer-events-none' : ''}`}>
+            <div className={`hud-border p-5 sm:p-6 ${fade} ${isHidden ? 'opacity-0 -translate-y-4 pointer-events-none' : ''}`}>
                 <div className="hud-crosshair-v"></div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-4 gap-x-8">
                     <div>
@@ -112,12 +115,18 @@ export default function StageRunner({ stage, onBack }) {
             </div>
 
             {/* ── Bottom Actions ── */}
-            <div className={`${fade} ${isActive ? 'opacity-0 translate-y-8 pointer-events-none' : ''}`}>
+            <div className={`${fade} ${isHidden ? 'opacity-0 translate-y-8 pointer-events-none' : ''}`}>
                 {isIdle && (
                     <button onClick={() => start(drill.audioId || stage.id)} className="group w-full flex items-center justify-center space-x-4 py-4 hud-border bg-emerald-500/5 hover:bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/40 transition-all">
                         <div className="w-3 h-3 bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.7)]" />
-                        <span className="font-mono tracking-[0.3em] text-base text-emerald-400 group-hover:text-emerald-300 uppercase">Initiate</span>
+                        <span className="font-mono tracking-[0.3em] text-base text-emerald-400 group-hover:text-emerald-300 uppercase">Start</span>
                     </button>
+                )}
+                {isBriefing && (
+                    <div className="w-full flex items-center justify-center space-x-4 py-4 hud-border border-orange-500/30 bg-orange-500/5">
+                        <div className="w-3 h-3 bg-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.7)] animate-pulse" />
+                        <span className="font-mono tracking-[0.3em] text-base text-orange-400 uppercase">Briefing</span>
+                    </div>
                 )}
                 {isFinished && (
                     <div className="flex gap-3">

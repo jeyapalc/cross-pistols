@@ -32,38 +32,40 @@ export default function TargetDisplay({ status, expanded = false }) {
 
     return (
         <div style={containerStyle}>
-            {/* 3D Target — rotates but no cardboard edge */}
+            {/* 3D Target */}
             <div style={{ ...targetStyle, position: 'relative' }}>
                 <div style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <img
-                        src={targetImage}
-                        alt="Target"
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                    />
+                    <img src={targetImage} alt="Target" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
             </div>
 
-            {/* Status Overlays */}
+            {/* BE READY — red strobe warning */}
             {status === STATUS.READY_WAIT && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="hud-border px-6 py-3 border-yellow-500/50 bg-yellow-900/10 backdrop-blur-md">
-                        <h2 className="text-lg font-mono font-bold text-yellow-500/80 uppercase animate-pulse tracking-[0.3em]">
-                            BE READY
-                        </h2>
+                    <div className="strobe-warning">
+                        <div className="hud-border px-8 py-5 border-red-600/70 bg-red-950/40 backdrop-blur-md shadow-[0_0_60px_rgba(220,38,38,0.5)]">
+                            <h2 className="text-2xl sm:text-3xl font-black text-red-500 uppercase tracking-[0.4em] drop-shadow-[0_0_25px_rgba(220,38,38,0.7)]">
+                                BE READY
+                            </h2>
+                        </div>
                     </div>
                 </div>
             )}
 
+            {/* BE ALERT — chain wait strobe */}
             {status === STATUS.CHAIN_WAIT && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="hud-border px-8 py-5 border-red-500/60 bg-red-900/30 backdrop-blur-md shadow-[0_0_40px_rgba(239,68,68,0.4)] animate-pulse">
-                        <h2 className="text-2xl sm:text-3xl font-black text-red-500 uppercase tracking-[0.4em] drop-shadow-[0_0_20px_rgba(239,68,68,0.6)]">
-                            BE ALERT
-                        </h2>
+                    <div className="strobe-warning">
+                        <div className="hud-border px-8 py-5 border-red-600/70 bg-red-950/40 backdrop-blur-md shadow-[0_0_60px_rgba(220,38,38,0.5)]">
+                            <h2 className="text-2xl sm:text-3xl font-black text-red-500 uppercase tracking-[0.4em] drop-shadow-[0_0_25px_rgba(220,38,38,0.7)]">
+                                BE ALERT
+                            </h2>
+                        </div>
                     </div>
                 </div>
             )}
 
+            {/* SYSTEM READY — only idle, non-expanded */}
             {status === STATUS.IDLE && !expanded && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                     <div className="hud-border px-6 py-4 border-emerald-500/30 bg-emerald-900/20 backdrop-blur-md">
