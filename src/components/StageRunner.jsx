@@ -30,6 +30,21 @@ export default function StageRunner({ stage, onBack }) {
     return (
         <div className="flex flex-col h-full space-y-6 animate-fade-in relative z-10">
             
+            {/* Round Status Bar (Fighting Game Style) */}
+            {stage.drills.length > 1 && (
+                <div className="flex w-full items-center justify-center space-x-2 pb-2">
+                    {stage.drills.map((_, idx) => {
+                        const isPast = idx < currentDrillIndex;
+                        const isCurrent = idx === currentDrillIndex;
+                        return (
+                            <div key={idx} className={`h-1.5 flex-1 max-w-[60px] border transition-all duration-300 relative ${isPast ? 'bg-emerald-500/80 border-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : isCurrent ? 'bg-white/20 border-white shadow-[0_0_10px_rgba(255,255,255,0.6)] animate-pulse' : 'bg-transparent border-white/20'}`}>
+                                {isCurrent && <div className="absolute inset-0 bg-white/40 blur-[2px]"></div>}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
             {/* Top Info Bar (INFO & CREDITS style) */}
             <div className="hud-border grid sm:grid-cols-2">
                 <div className="p-4 sm:p-6 border-b sm:border-b-0 sm:border-r border-white/5 relative">

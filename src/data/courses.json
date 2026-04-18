@@ -89,49 +89,52 @@
       {
         "id": "reg-s2",
         "name": "Stage 2: 7 Meters",
-        "briefing": "Shooters on the line, ready and holster your pistol. On the sound of the shot timer, within 10 seconds total: issue the Police challenge, draw from the holster with 2 rounds loaded, fire 2 rounds, perform an emergency reload, fire 2 rounds, then repeat the entire sequence once at 7 meters.",
+        "briefing": "Shooters on the line, ready and holster your pistol. Each block: on the sound of the timer, issue the Police challenge, draw from the holster, fire 2 to emergency reload, then fire 2 rounds (10s total).",
         "drills": [
           {
             "type": "standard",
+            "label": "Iteration 1",
             "parTime": 10,
-            "description": "Issue Challenge, Draw, 2 rounds, Emergency Reload, 2 rounds (REPEAT ONCE -> Total 10s??)",
+            "description": "Issue Challenge, Draw, 2 Rds, Emerg Reload, 2 Rds",
             "startSignal": "beep",
             "readyPosition": "Holster",
-            "rounds": 8
+            "rounds": 4
+          },
+          {
+            "type": "standard",
+            "label": "Iteration 2",
+            "parTime": 10,
+            "description": "Issue Challenge, Draw, 2 Rds, Emerg Reload, 2 Rds",
+            "startSignal": "beep",
+            "readyPosition": "Holster",
+            "rounds": 4
           }
         ]
       },
       {
         "id": "reg-s3",
         "name": "Stage 3: 5 Meters",
-        "briefing": "Shooters on the line, ready and holster your pistol. You will complete 3 timed blocks.",
+        "briefing": "Shooters on the line. Complete 2 timed blocks. Block 1: Draw and fire 2 CM, 1 head (5s). Block 2: High ready, fire 2 CM, 2 head (5s).",
         "drills": [
           {
             "type": "standard",
             "label": "Block 1",
             "parTime": 5, 
-            "description": "Draw, 1 CM, 1 Head",
-            "startSignal": "beep",
-            "readyPosition": "Holster",
-            "rounds": 2
-          },
-          {
-            "type": "standard",
-             "label": "Block 2",
-            "parTime": 5,
             "description": "Draw, 2 CM, 1 Head",
             "startSignal": "beep",
             "readyPosition": "Holster",
+            "startPos": "HOLSTER",
             "rounds": 3
           },
           {
-             "type": "standard",
-             "label": "Block 3",
-             "parTime": 5,
-             "description": "Course details TBD",
-             "startSignal": "beep",
-             "readyPosition": "Holster",
-             "rounds": 0
+            "type": "standard",
+            "label": "Block 2",
+            "parTime": 5,
+            "description": "High Ready, 2 CM, 2 Head",
+            "startSignal": "beep",
+            "readyPosition": "High Ready",
+            "startPos": "HIGH READY",
+            "rounds": 4
           }
         ]
       }
