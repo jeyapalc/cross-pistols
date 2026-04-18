@@ -14,20 +14,20 @@ export default function StageRunner({ stage, onBack }) {
     const isRunning = status === STATUS.RUNNING;
     const isChainWait = status === STATUS.CHAIN_WAIT;
 
-    // Auto-chain: when drill finishes and stage has autoChain, advance and start silently
+    // Active = any state where the drill sequence is in progress
+    const isActive = status === STATUS.BRIEFING || status === STATUS.READY_WAIT || isRunning || isChainWait;
+
+    // Auto-chain logic for stages like Stage 2
     useEffect(() => {
         if (isFinished && stage.autoChain && currentDrillIndex < stage.drills.length - 1 && !hasChainedRef.current) {
             hasChainedRef.current = true;
             const nextIndex = currentDrillIndex + 1;
             const standbyRange = stage.chainStandbyRange || [6, 11];
 
-            // Small delay so FINISHED state renders briefly, then advance
             setTimeout(() => {
                 setCurrentDrillIndex(nextIndex);
-                // reset() will fire from the drill change effect, then we start silent
             }, 500);
 
-            // Schedule the silent start after the drill index updates
             setTimeout(() => {
                 startSilent(standbyRange);
                 hasChainedRef.current = false;
@@ -45,11 +45,16 @@ export default function StageRunner({ stage, onBack }) {
     const isLastDrill = currentDrillIndex >= stage.drills.length - 1;
     const showManualNext = !stage.autoChain && !isLastDrill;
 
+    // Shared transition class for chrome fade
+    const chromeTransition = 'transition-all duration-[600ms] ease-[cubic-bezier(0.4,0,0.2,1)]';
+
     return (
-        <div className="flex flex-col h-full animate-fade-in w-full space-y-6">
+        <div className="flex flex-col h-full animate-fade-in w-full space-y-6 relative">
+
+            {/* ═══ CHROME: fades out when active ═══ */}
 
             {/* Stage Header */}
-            <div className="flex items-center justify-between">
+            <div className={`flex items-center justify-between ${chromeTransition} ${isActive ? 'opacity-0 -translate-y-8 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
                 <div>
                     <h2 className="text-2xl font-black uppercase tracking-tight">{stage.name}</h2>
                     <p className="font-mono text-xs text-neutral-500 mt-1 uppercase tracking-widest">
@@ -67,7 +72,7 @@ export default function StageRunner({ stage, onBack }) {
 
             {/* Drill Progress Pips */}
             {stage.drills.length > 1 && (
-                <div className="flex w-full items-center space-x-2">
+                <div className={`flex w-full items-center space-x-2 ${chromeTransition} ${isActive ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
                     {stage.drills.map((_, idx) => {
                         const isPast = idx < currentDrillIndex;
                         const isCurrent = idx === currentDrillIndex;
@@ -79,7 +84,7 @@ export default function StageRunner({ stage, onBack }) {
             )}
 
             {/* Drill Mechanics Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 ${chromeTransition} ${isActive ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
                 {/* Distance */}
                 <div className="flex items-center space-x-3 hud-border p-3 bg-[#09090b]/50 border-white/5">
                     <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 flex-shrink-0">
@@ -126,7 +131,7 @@ export default function StageRunner({ stage, onBack }) {
                     </div>
                 </div>
 
-                {/* Facings (only for multi-drill stages) */}
+                {/* Facings */}
                 {stage.drills.length > 1 && (
                     <div className="flex items-center space-x-3 hud-border p-3 bg-[#09090b]/50 border-white/5">
                         <div className="w-8 h-8 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-500 flex-shrink-0">
@@ -144,24 +149,13 @@ export default function StageRunner({ stage, onBack }) {
                 )}
             </div>
 
-            {/* Target Display */}
-            <div className="flex-1 min-h-[250px] flex items-center justify-center relative">
-                <TargetDisplay status={status} />
-
-                {/* BE ALERT flash overlay during chain wait */}
-                {isChainWait && (
-                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-                        <div className="hud-border px-8 py-5 border-red-500/60 bg-red-900/30 backdrop-blur-md shadow-[0_0_40px_rgba(239,68,68,0.4)] animate-pulse">
-                            <h2 className="text-2xl sm:text-3xl font-black text-red-500 uppercase tracking-[0.4em] drop-shadow-[0_0_20px_rgba(239,68,68,0.6)]">
-                                BE ALERT
-                            </h2>
-                        </div>
-                    </div>
-                )}
+            {/* ═══ TARGET: always present, expands to fullscreen when active ═══ */}
+            <div className={`${chromeTransition} ${isActive ? 'fixed inset-0 z-40' : 'flex-1 min-h-[250px] flex items-center justify-center'}`}>
+                <TargetDisplay status={status} expanded={isActive} />
             </div>
 
-            {/* Bottom Controls */}
-            <div className="hud-border p-4 sm:p-5 bg-[#09090b]/30">
+            {/* ═══ BOTTOM CONTROLS: fade out when active ═══ */}
+            <div className={`hud-border p-4 sm:p-5 bg-[#09090b]/30 ${chromeTransition} ${isActive ? 'opacity-0 translate-y-8 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
 
                     {/* Left: Action Button */}
@@ -183,17 +177,10 @@ export default function StageRunner({ stage, onBack }) {
                                     </button>
                                 )}
                             </div>
-                        ) : isChainWait ? (
-                            <div className="flex items-center space-x-3 py-2 px-4">
-                                <div className="w-3 h-3 bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse"></div>
-                                <span className="font-mono tracking-[0.2em] text-sm text-red-400">BE ALERT</span>
-                            </div>
                         ) : (
                             <div className="flex items-center space-x-3 py-2 px-4">
-                                <div className={`w-3 h-3 ${isRunning ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)] animate-pulse'}`}></div>
-                                <span className="font-mono tracking-[0.2em] text-sm text-white">
-                                    {isRunning ? 'ACTIVE' : status === STATUS.BRIEFING ? 'BRIEFING' : 'STANDBY'}
-                                </span>
+                                <div className="w-3 h-3 bg-neutral-600"></div>
+                                <span className="font-mono tracking-[0.2em] text-sm text-neutral-600">—</span>
                             </div>
                         )}
                     </div>
@@ -207,7 +194,7 @@ export default function StageRunner({ stage, onBack }) {
                     </div>
 
                     {/* Right: Timer */}
-                    <div className={`font-mono text-2xl tabular-nums ${isRunning ? 'text-white' : isChainWait ? 'text-red-500 animate-pulse' : 'text-neutral-500'}`} style={{ letterSpacing: '-0.1em' }}>
+                    <div className={`font-mono text-2xl tabular-nums text-neutral-500`} style={{ letterSpacing: '-0.1em' }}>
                         {timeLeft.toFixed(2)}
                     </div>
                 </div>
