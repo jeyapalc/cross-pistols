@@ -2,6 +2,44 @@ import { useState, useEffect, useRef } from 'react';
 import { useStageTimer, STATUS } from '../engine/useStageTimer';
 import TargetDisplay from './TargetDisplay';
 
+// Clean SVG icon components
+const IconRange = () => (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 12h4l3-9 4 18 3-9h4" />
+    </svg>
+);
+const IconTime = () => (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+    </svg>
+);
+const IconStance = () => (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="4" r="2.5" />
+        <line x1="12" y1="6.5" x2="12" y2="15" />
+        <line x1="8" y1="10" x2="16" y2="10" />
+        <line x1="12" y1="15" x2="8" y2="22" />
+        <line x1="12" y1="15" x2="16" y2="22" />
+    </svg>
+);
+const IconRounds = () => (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="6" y="2" rx="3" width="12" height="20" />
+        <line x1="12" y1="6" x2="12" y2="8" />
+        <line x1="12" y1="10" x2="12" y2="12" />
+        <line x1="12" y1="14" x2="12" y2="16" />
+    </svg>
+);
+const IconFacings = () => (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7" />
+        <rect x="14" y="3" width="7" height="7" />
+        <rect x="3" y="14" width="7" height="7" />
+        <rect x="14" y="14" width="7" height="7" />
+    </svg>
+);
+
 export default function StageRunner({ stage, onBack }) {
     const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
     const drill = stage.drills[currentDrillIndex];
@@ -13,25 +51,15 @@ export default function StageRunner({ stage, onBack }) {
     const isIdle = status === STATUS.IDLE;
     const isRunning = status === STATUS.RUNNING;
     const isChainWait = status === STATUS.CHAIN_WAIT;
-
-    // Active = any state where the drill sequence is in progress
     const isActive = status === STATUS.BRIEFING || status === STATUS.READY_WAIT || isRunning || isChainWait;
 
-    // Auto-chain logic for stages like Stage 2
+    // Auto-chain logic
     useEffect(() => {
         if (isFinished && stage.autoChain && currentDrillIndex < stage.drills.length - 1 && !hasChainedRef.current) {
             hasChainedRef.current = true;
-            const nextIndex = currentDrillIndex + 1;
             const standbyRange = stage.chainStandbyRange || [6, 11];
-
-            setTimeout(() => {
-                setCurrentDrillIndex(nextIndex);
-            }, 500);
-
-            setTimeout(() => {
-                startSilent(standbyRange);
-                hasChainedRef.current = false;
-            }, 700);
+            setTimeout(() => setCurrentDrillIndex(prev => prev + 1), 500);
+            setTimeout(() => { startSilent(standbyRange); hasChainedRef.current = false; }, 700);
         }
     }, [isFinished, stage, currentDrillIndex, startSilent]);
 
@@ -44,160 +72,93 @@ export default function StageRunner({ stage, onBack }) {
 
     const isLastDrill = currentDrillIndex >= stage.drills.length - 1;
     const showManualNext = !stage.autoChain && !isLastDrill;
-
-    // Shared transition class for chrome fade
-    const chromeTransition = 'transition-all duration-[600ms] ease-[cubic-bezier(0.4,0,0.2,1)]';
+    const rangeMeters = stage.name.match(/(\d+)\s*m/i)?.[1] || '--';
+    const fade = 'transition-all duration-[600ms] ease-[cubic-bezier(0.4,0,0.2,1)]';
 
     return (
         <div className="flex flex-col h-full animate-fade-in w-full space-y-6 relative">
 
-            {/* ═══ CHROME: fades out when active ═══ */}
-
-            {/* Stage Header */}
-            <div className={`flex items-center justify-between ${chromeTransition} ${isActive ? 'opacity-0 -translate-y-8 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
+            {/* ── Header ── */}
+            <div className={`flex items-center justify-between ${fade} ${isActive ? 'opacity-0 -translate-y-8 pointer-events-none' : ''}`}>
                 <div>
                     <h2 className="text-2xl font-black uppercase tracking-tight">{stage.name}</h2>
                     <p className="font-mono text-xs text-neutral-500 mt-1 uppercase tracking-widest">
-                        Drill {currentDrillIndex + 1} of {stage.drills.length}
+                        {stage.drills.length > 1 ? `Drill ${currentDrillIndex + 1} of ${stage.drills.length}` : 'Single Drill'}
                         {drill.label ? ` — ${drill.label}` : ''}
                     </p>
                 </div>
-                <button
-                    onClick={onBack}
-                    className="font-mono text-xs text-neutral-500 hover:text-white tracking-widest uppercase transition-colors border border-white/10 hover:border-white/30 px-4 py-2"
-                >
+                <button onClick={onBack} className="font-mono text-xs text-neutral-500 hover:text-white tracking-widest uppercase transition-colors border border-white/10 hover:border-white/30 px-4 py-2">
                     ← Exit
                 </button>
             </div>
 
-            {/* Drill Progress Pips */}
+            {/* ── Drill Pips ── */}
             {stage.drills.length > 1 && (
-                <div className={`flex w-full items-center space-x-2 ${chromeTransition} ${isActive ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
-                    {stage.drills.map((_, idx) => {
-                        const isPast = idx < currentDrillIndex;
-                        const isCurrent = idx === currentDrillIndex;
-                        return (
-                            <div key={idx} className={`h-1.5 flex-1 max-w-[60px] border transition-all duration-300 ${isPast ? 'bg-emerald-500/80 border-emerald-400' : isCurrent ? 'bg-white/20 border-white' : 'bg-transparent border-white/20'}`}></div>
-                        );
-                    })}
+                <div className={`flex w-full items-center space-x-2 ${fade} ${isActive ? 'opacity-0 -translate-y-4 pointer-events-none' : ''}`}>
+                    {stage.drills.map((_, idx) => (
+                        <div key={idx} className={`h-1.5 flex-1 max-w-[60px] border transition-all duration-300 ${idx < currentDrillIndex ? 'bg-emerald-500/80 border-emerald-400' : idx === currentDrillIndex ? 'bg-white/20 border-white' : 'bg-transparent border-white/20'}`} />
+                    ))}
                 </div>
             )}
 
-            {/* Drill Mechanics Grid */}
-            <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 ${chromeTransition} ${isActive ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
-                {/* Distance */}
-                <div className="flex items-center space-x-3 hud-border p-3 bg-[#09090b]/50 border-white/5">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 flex-shrink-0">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10" />
-                            <circle cx="12" cy="12" r="3" />
-                            <line x1="12" y1="2" x2="12" y2="5" />
-                            <line x1="12" y1="19" x2="12" y2="22" />
-                            <line x1="2" y1="12" x2="5" y2="12" />
-                            <line x1="19" y1="12" x2="22" y2="12" />
-                        </svg>
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                        <span className="font-bold uppercase text-[10px] tracking-widest text-neutral-400">Range</span>
-                        <span className="font-mono text-sm text-white">{stage.name.match(/(\d+)\s*m/i)?.[1] || '--'}m</span>
-                    </div>
-                </div>
-
-                {/* Time */}
-                <div className="flex items-center space-x-3 hud-border p-3 bg-[#09090b]/50 border-white/5">
-                    <div className="w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 flex-shrink-0">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10" />
-                            <polyline points="12 6 12 12 16 14" />
-                        </svg>
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                        <span className="font-bold uppercase text-[10px] tracking-widest text-neutral-400">Par Time</span>
-                        <span className="font-mono text-sm text-white">{drill.parTime.toFixed(1)}s</span>
-                    </div>
-                </div>
-
-                {/* Stance */}
-                <div className="flex items-center space-x-3 hud-border p-3 bg-[#09090b]/50 border-white/5">
-                    <div className="w-8 h-8 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 flex-shrink-0">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="5" r="3" />
-                            <path d="M12 8v4m-4 6l4-6 4 6" />
-                        </svg>
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                        <span className="font-bold uppercase text-[10px] tracking-widest text-neutral-400">Stance</span>
-                        <span className="font-mono text-sm text-white truncate">{drill.readyPosition?.toUpperCase() || 'STANDING'}</span>
-                    </div>
-                </div>
-
-                {/* Facings */}
+            {/* ── Drill Stats ── */}
+            <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 ${fade} ${isActive ? 'opacity-0 -translate-y-4 pointer-events-none' : ''}`}>
+                <StatBlock icon={<IconRange />} label="Range" value={`${rangeMeters}m`} color="emerald" />
+                <StatBlock icon={<IconTime />} label="Par Time" value={`${drill.parTime}s`} color="cyan" />
+                <StatBlock icon={<IconStance />} label="Stance" value={drill.readyPosition?.toUpperCase() || 'STANDING'} color="rose" />
+                <StatBlock icon={<IconRounds />} label="Rounds" value={drill.rounds || '--'} color="violet" />
                 {stage.drills.length > 1 && (
-                    <div className="flex items-center space-x-3 hud-border p-3 bg-[#09090b]/50 border-white/5">
-                        <div className="w-8 h-8 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-500 flex-shrink-0">
-                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                                <polyline points="2 17 12 22 22 17" />
-                                <polyline points="2 12 12 17 22 12" />
-                            </svg>
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                            <span className="font-bold uppercase text-[10px] tracking-widest text-neutral-400">Facings</span>
-                            <span className="font-mono text-sm text-white">[{currentDrillIndex + 1}/{stage.drills.length}]</span>
-                        </div>
-                    </div>
+                    <StatBlock icon={<IconFacings />} label="Iteration" value={`${currentDrillIndex + 1} / ${stage.drills.length}`} color="amber" />
                 )}
             </div>
 
-            {/* ═══ TARGET: always present, expands to fullscreen when active ═══ */}
-            <div className={`${chromeTransition} ${isActive ? 'fixed inset-0 z-40' : 'flex-1 min-h-[250px] flex items-center justify-center'}`}>
+            {/* ── Target ── */}
+            <div className={`${fade} ${isActive ? 'fixed inset-0 z-40' : 'flex-1 min-h-[250px] flex items-center justify-center'}`}>
                 <TargetDisplay status={status} expanded={isActive} />
             </div>
 
-            {/* ═══ BOTTOM CONTROLS: fade out when active ═══ */}
-            <div className={`hud-border p-4 sm:p-5 bg-[#09090b]/30 ${chromeTransition} ${isActive ? 'opacity-0 translate-y-8 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-
-                    {/* Left: Action Button */}
-                    <div className="w-full sm:w-auto">
-                        {isIdle ? (
-                            <button onClick={() => start(drill.audioId || stage.id)} className="group flex items-center space-x-3 hover:bg-white/5 py-2 px-4 transition-colors border border-emerald-500/30 hover:border-emerald-500/60">
-                                <div className="w-3 h-3 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
-                                <span className="font-mono tracking-[0.2em] text-sm text-emerald-400 group-hover:text-emerald-300">INITIATE</span>
+            {/* ── Bottom: INITIATE / RESHOOT only (no timer bar when idle) ── */}
+            <div className={`${fade} ${isActive ? 'opacity-0 translate-y-8 pointer-events-none' : ''}`}>
+                {isIdle && (
+                    <button onClick={() => start(drill.audioId || stage.id)} className="group w-full flex items-center justify-center space-x-4 py-4 hud-border bg-emerald-500/5 hover:bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/40 transition-all">
+                        <div className="w-3 h-3 bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.7)]" />
+                        <span className="font-mono tracking-[0.3em] text-base text-emerald-400 group-hover:text-emerald-300 uppercase">Initiate</span>
+                    </button>
+                )}
+                {isFinished && (
+                    <div className="flex gap-3">
+                        <button onClick={reset} className="flex-1 font-mono tracking-[0.2em] text-sm text-neutral-400 hover:text-white py-3 hud-border bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/30 transition-all text-center uppercase">
+                            Reshoot
+                        </button>
+                        {showManualNext && (
+                            <button onClick={handleNext} className="flex-[2] font-mono tracking-[0.2em] text-sm text-emerald-400 hover:text-emerald-300 py-3 hud-border bg-emerald-500/5 hover:bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/40 transition-all text-center uppercase">
+                                Continue to Drill {currentDrillIndex + 2} →
                             </button>
-                        ) : isFinished ? (
-                            <div className="flex space-x-3">
-                                <button onClick={reset} className="font-mono tracking-[0.2em] text-xs text-neutral-400 hover:text-white py-2 px-4 border border-white/10 hover:border-white/30 transition-colors">
-                                    RESHOOT
-                                </button>
-                                {showManualNext && (
-                                    <button onClick={handleNext} className="group flex items-center space-x-2 py-2 px-4 border border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors">
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                        <span className="font-mono tracking-[0.15em] text-xs text-emerald-400">Continue to Drill {currentDrillIndex + 2}</span>
-                                    </button>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="flex items-center space-x-3 py-2 px-4">
-                                <div className="w-3 h-3 bg-neutral-600"></div>
-                                <span className="font-mono tracking-[0.2em] text-sm text-neutral-600">—</span>
-                            </div>
                         )}
                     </div>
+                )}
+            </div>
+        </div>
+    );
+}
 
-                    {/* Center: Progress Bar */}
-                    <div className="flex-1 w-full bg-white/10 h-[2px] relative">
-                        <div
-                            className="absolute top-0 left-0 h-full bg-white transition-all duration-[50ms] ease-linear"
-                            style={{ width: `${Math.max(0, Math.min(100, (timeLeft / drill.parTime) * 100))}%` }}
-                        ></div>
-                    </div>
-
-                    {/* Right: Timer */}
-                    <div className={`font-mono text-2xl tabular-nums text-neutral-500`} style={{ letterSpacing: '-0.1em' }}>
-                        {timeLeft.toFixed(2)}
-                    </div>
-                </div>
+// Reusable stat block component
+function StatBlock({ icon, label, value, color }) {
+    const colors = {
+        emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+        cyan: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',
+        rose: 'bg-rose-500/10 border-rose-500/20 text-rose-400',
+        violet: 'bg-violet-500/10 border-violet-500/20 text-violet-400',
+        amber: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+    };
+    return (
+        <div className="flex items-center space-x-3 p-3 rounded-sm bg-[#0c0c10] border border-white/5">
+            <div className={`w-9 h-9 rounded-full border flex items-center justify-center flex-shrink-0 ${colors[color]}`}>
+                {icon}
+            </div>
+            <div className="flex flex-col min-w-0">
+                <span className="font-bold uppercase text-[9px] tracking-widest text-neutral-500">{label}</span>
+                <span className="font-mono text-sm text-white truncate">{value}</span>
             </div>
         </div>
     );
