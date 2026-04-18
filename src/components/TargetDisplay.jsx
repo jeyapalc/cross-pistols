@@ -23,27 +23,48 @@ export default function TargetDisplay({ status }) {
     }, [status]);
 
     return (
-        <div className="relative flex justify-center items-center perspective-1000 w-full h-full min-h-[200px]">
-            {/* 3D Target Container */}
+        <div className="relative flex justify-center items-center w-full" style={{ perspective: '1000px', height: '320px' }}>
+            {/* 3D Target Container — explicit pixel sizes to prevent any height collapse */}
             <div
-                className={`transition-transform duration-300 ease-out transform-style-3d relative w-48 sm:w-64 h-full max-h-[400px] ${isFacing ? 'rotate-y-0' : 'rotate-y-90'}`}
+                style={{
+                    width: '220px',
+                    height: '300px',
+                    transformStyle: 'preserve-3d',
+                    transition: 'transform 0.3s ease-out',
+                    transform: isFacing ? 'rotateY(0deg)' : 'rotateY(90deg)',
+                }}
             >
                 {/* Target Face */}
-                <div className="absolute inset-0 backface-hidden flex items-center justify-center">
+                <div style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <img
                         src={targetImage}
                         alt="Target"
-                        className="w-full h-full object-contain"
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     />
                 </div>
 
-                {/* Cardboard Edge */}
+                {/* Cardboard Edge (visible when rotated 90deg) */}
                 <div
-                    className="absolute inset-y-4 left-1/2 w-3 -ml-[1.5px] bg-[#a67c52] border-x border-[#5c3a21] shadow-[0_0_30px_rgba(166,124,82,0.3)] flex flex-col justify-between overflow-hidden"
-                    style={{ transform: 'rotateY(-90deg) translateZ(2px)' }}
+                    style={{
+                        position: 'absolute',
+                        top: '16px',
+                        bottom: '16px',
+                        left: '50%',
+                        width: '10px',
+                        marginLeft: '-5px',
+                        background: '#a67c52',
+                        borderLeft: '1px solid #5c3a21',
+                        borderRight: '1px solid #5c3a21',
+                        boxShadow: '0 0 30px rgba(166,124,82,0.3)',
+                        transform: 'rotateY(-90deg) translateZ(2px)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        overflow: 'hidden',
+                    }}
                 >
                     {[...Array(16)].map((_, i) => (
-                        <div key={i} className="w-full h-[2px] bg-[#5c3a21]/40"></div>
+                        <div key={i} style={{ width: '100%', height: '2px', background: 'rgba(92,58,33,0.4)' }}></div>
                     ))}
                 </div>
             </div>
