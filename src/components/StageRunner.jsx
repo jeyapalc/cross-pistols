@@ -6,7 +6,7 @@ export default function StageRunner({ stage, onBack }) {
     const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
     const drill = stage.drills[currentDrillIndex];
 
-    const { status, timeLeft, start, reset } = useStageTimer(drill);
+    const { status, timeLeft, start, reset, isBriefingWarning } = useStageTimer(drill);
 
     const isFinished = status === STATUS.FINISHED;
     const isIdle = status === STATUS.IDLE;
@@ -99,7 +99,7 @@ export default function StageRunner({ stage, onBack }) {
 
             {/* Target Display Area */}
             <div className={`flex items-center justify-center relative transition-all duration-[800ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isCinematicMode ? 'fixed inset-0 z-[60] pointer-events-none' : 'flex-1 min-h-[300px] mt-8 z-0 w-full'}`}>
-                <TargetDisplay status={status} fullScreen={isCinematicMode} subtitle={stage.briefing} />
+                <TargetDisplay status={status} fullScreen={isCinematicMode} subtitle={stage.briefing} isBriefingWarning={isBriefingWarning} />
             </div>
 
             {/* Distractions Container - Bottom */}

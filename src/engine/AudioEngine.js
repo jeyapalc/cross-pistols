@@ -42,11 +42,22 @@ class AudioEngine {
     }
 
     // Play ultra-realistic pre-rendered MP3 from EdgeTTS
-    playScript(stageId) {
+    playScript(stageId, onWarning = null) {
         return new Promise((resolve) => {
             const audioPath = `${import.meta.env.BASE_URL}audio/${stageId}.mp3`;
             const audioObj = new Audio(audioPath);
+            let warningFired = false;
             
+            // Dispatch warning 3 seconds before the sequence ends
+            audioObj.addEventListener('timeupdate', () => {
+                if (audioObj.duration && audioObj.currentTime >= Math.max(0, audioObj.duration - 3.0)) {
+                    if (!warningFired && onWarning) {
+                        warningFired = true;
+                        onWarning();
+                    }
+                }
+            });
+
             audioObj.onended = () => resolve();
             audioObj.onerror = () => {
                 console.error("Failed to load stage script MP3:", audioPath);

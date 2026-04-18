@@ -13,6 +13,7 @@ export function useStageTimer(drill) {
     const [status, setStatus] = useState(STATUS.IDLE);
     const [timeLeft, setTimeLeft] = useState(0);
     const [currentRep, setCurrentRep] = useState(1);
+    const [isBriefingWarning, setIsBriefingWarning] = useState(false);
     const timerRef = useRef(null);
     const startTimeRef = useRef(0);
 
@@ -30,7 +31,9 @@ export function useStageTimer(drill) {
         
         if (stageId) {
             setStatus(STATUS.BRIEFING);
-            await audio.playScript(stageId);
+            setIsBriefingWarning(false);
+            await audio.playScript(stageId, () => setIsBriefingWarning(true));
+            setIsBriefingWarning(false);
         }
 
         // Voice script is done, drop into standard randomized standby sequence
@@ -91,5 +94,6 @@ export function useStageTimer(drill) {
         timeLeft,
         start: startDrill,
         reset,
+        isBriefingWarning,
     };
 }
