@@ -174,6 +174,14 @@ export default function ProEnvironment({ enableControls = false, sceneKey = 'gal
     // Reset viewerReady when scene changes
     useEffect(() => { setViewerReady(false); }, [modelId]);
 
+    // ── Auto-close panels when drill becomes active ──
+    useEffect(() => {
+        if (drillStatus && drillStatus !== 'IDLE') {
+            setShowPanel(false);
+            setShowTelemetry(false);
+        }
+    }, [drillStatus]);
+
     /* ── Camera telemetry polling (500ms) ── */
     useEffect(() => {
         if (showTelemetry && apiRef.current) {
@@ -705,7 +713,8 @@ export default function ProEnvironment({ enableControls = false, sceneKey = 'gal
             )}
 
 
-            {/* ═══ CAMERA TELEMETRY HUD (top-left) ═══ */}
+            {/* ═══ CAMERA TELEMETRY HUD (top-left) — hidden during drills ═══ */}
+            {(!drillStatus || drillStatus === 'IDLE') && (
             <div style={{
                 position: 'absolute', top: 20, left: 20,
                 zIndex: 100, pointerEvents: 'auto',
@@ -777,9 +786,12 @@ export default function ProEnvironment({ enableControls = false, sceneKey = 'gal
                     </div>
                 )}
             </div>
+            )}
 
 
-            {/* ═══ ENVIRONMENT HUD TRIGGER (bottom-right) ═══ */}
+            {/* ═══ ENVIRONMENT HUD TRIGGER (bottom-right) — hidden during drills ═══ */}
+            {(!drillStatus || drillStatus === 'IDLE') && (
+            <>
             <div style={{
                 position: 'absolute', bottom: 20, right: 20,
                 zIndex: 100, pointerEvents: 'auto',
@@ -1084,6 +1096,8 @@ export default function ProEnvironment({ enableControls = false, sceneKey = 'gal
                         </div>
                     </div>
                 </div>
+            )}
+            </>
             )}
 
 
