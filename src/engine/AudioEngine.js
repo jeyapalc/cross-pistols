@@ -1,6 +1,12 @@
 class AudioEngine {
     constructor() {
         this.audioCtx = null;
+        this.voice = localStorage.getItem('cp_voice') || 'male-us';
+    }
+
+    setVoice(v) {
+        this.voice = v;
+        localStorage.setItem('cp_voice', v);
     }
 
     init() {
@@ -44,7 +50,7 @@ class AudioEngine {
     // Play ultra-realistic pre-rendered MP3 from EdgeTTS
     playScript(stageId, onWarning = null) {
         return new Promise((resolve) => {
-            const audioPath = `${import.meta.env.BASE_URL}audio/${stageId}.mp3`;
+            const audioPath = `${import.meta.env.BASE_URL}audio/${this.voice}/${stageId}.mp3`;
             const audioObj = new Audio(audioPath);
             let warningFired = false;
             

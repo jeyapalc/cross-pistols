@@ -1,8 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import coursesData from './data/courses.json';
 import CourseSelector from './components/CourseSelector';
 import StageRunner from './components/StageRunner';
 import LoginScreen from './components/LoginScreen';
+import ProEnvironment from './components/ProEnvironment';
+const TopNav = ({ resetSelection, setActiveTab, activeTab }) => (
+    <header className="flex justify-between items-end border-b border-white/10 pb-4 mb-12 mt-4 relative">
+      <div className="absolute -left-4 -bottom-[1px] w-4 h-[1px] bg-white/30"></div>
+      <div className="absolute -left-[1px] -bottom-4 w-[1px] h-4 bg-white/30"></div>
+      <div className="absolute -right-4 -bottom-[1px] w-4 h-[1px] bg-white/30"></div>
+      <div className="absolute -right-[1px] -bottom-4 w-[1px] h-4 bg-white/30"></div>
+
+      <div className="flex space-x-8 items-baseline w-full justify-between">
+        <h1 className="text-4xl font-black tracking-tighter cursor-pointer hover:text-neutral-300 transition-colors" onClick={() => { resetSelection(); setActiveTab('Courses'); }}>
+          CROSS PISTOLS
+        </h1>
+        <nav className="space-x-8 text-xs tracking-[0.25em] text-neutral-400 hidden md:block uppercase font-bold">
+          <button onClick={() => { resetSelection(); setActiveTab('Courses'); }} className={`${activeTab === 'Courses' ? 'text-white' : 'hover:text-white'} transition-colors`}>Courses</button>
+          <button onClick={() => { resetSelection(); setActiveTab('PRO'); }} className={`${activeTab === 'PRO' ? 'text-emerald-400' : 'hover:text-white'} transition-colors`}>PRO</button>
+        </nav>
+      </div>
+    </header>
+);
 
 function App() {
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -10,6 +29,10 @@ function App() {
   const [isReady, setIsReady] = useState(false);
   const [activeTab, setActiveTab] = useState('Courses');
   const [isAuthenticated, setIsAuthenticated] = useState(true); // TEMPORARILY BYPASSED FOR DEV
+  const [drillStatus, setDrillStatus] = useState(null);
+
+  // ── Keyboard-focused stage index for arrow key navigation ──
+  const [focusedStageIdx, setFocusedStageIdx] = useState(0);
 
   const handleLogin = () => {
     localStorage.setItem('crossPistolsAuth', 'true');
@@ -24,7 +47,77 @@ function App() {
   const resetSelection = () => {
     setSelectedCourse(null);
     setSelectedStage(null);
+    setFocusedStageIdx(0);
   };
+
+  // Reset focus index when entering a course
+  useEffect(() => {
+    setFocusedStageIdx(0);
+  }, [selectedCourse]);
+
+  const displayCourses = activeTab === 'PRO' 
+    ? coursesData.filter(c => c.id === 'regular') 
+    : coursesData;
+
+  /* ══════════════════════════════════════════════════════
+     GLOBAL KEYBOARD NAVIGATION
+     ESC: go back one level (stage→course→main menu)
+     ←/→: navigate stages when inside a course
+     Space/Enter: select focused stage or first course
+     ══════════════════════════════════════════════════════ */
+  const handleKeyDown = useCallback((e) => {
+    // Don't handle keyboard if a drill is running — StageRunner has its own handler
+    if (selectedStage) return;
+
+    switch (e.key) {
+      case 'Escape':
+        e.preventDefault();
+        if (selectedCourse) {
+          // Inside course → back to course list
+          setSelectedCourse(null);
+          setFocusedStageIdx(0);
+        } else if (activeTab === 'PRO') {
+          // PRO tab → back to Courses
+          setActiveTab('Courses');
+        }
+        break;
+
+      case 'ArrowLeft':
+        e.preventDefault();
+        if (selectedCourse) {
+          setFocusedStageIdx(prev => Math.max(0, prev - 1));
+        }
+        break;
+
+      case 'ArrowRight':
+        e.preventDefault();
+        if (selectedCourse) {
+          setFocusedStageIdx(prev => Math.min(selectedCourse.stages.length - 1, prev + 1));
+        }
+        break;
+
+      case ' ':
+      case 'Enter':
+        e.preventDefault();
+        if (selectedCourse) {
+          // Select the focused stage
+          const stage = selectedCourse.stages[focusedStageIdx];
+          if (stage) setSelectedStage(stage);
+        } else if (displayCourses.length > 0) {
+          // Auto-select first course
+          setSelectedCourse(displayCourses[0]);
+        }
+        break;
+
+      default:
+        break;
+    }
+  }, [selectedStage, selectedCourse, activeTab, focusedStageIdx, displayCourses]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   if (!isReady) {
       return (
@@ -54,108 +147,115 @@ function App() {
       return <LoginScreen onLogin={handleLogin} />;
   }
 
-  const TopNav = () => (
-    <header className="flex justify-between items-end border-b border-white/10 pb-4 mb-12 mt-4 relative">
-      {/* Corner crosshairs for navbar */}
-      <div className="absolute -left-4 -bottom-[1px] w-4 h-[1px] bg-white/30"></div>
-      <div className="absolute -left-[1px] -bottom-4 w-[1px] h-4 bg-white/30"></div>
-      <div className="absolute -right-4 -bottom-[1px] w-4 h-[1px] bg-white/30"></div>
-      <div className="absolute -right-[1px] -bottom-4 w-[1px] h-4 bg-white/30"></div>
 
-      <div className="flex space-x-8 items-baseline">
-        <h1 className="text-4xl font-black tracking-tighter cursor-pointer hover:text-neutral-300 transition-colors" onClick={() => { resetSelection(); setActiveTab('Courses'); }}>
-          CROSS PISTOLS
-        </h1>
-        <nav className="space-x-8 text-xs tracking-[0.25em] text-neutral-400 hidden md:block uppercase font-bold">
-          <button onClick={() => { resetSelection(); setActiveTab('Courses'); }} className={`${activeTab === 'Courses' ? 'text-white' : 'hover:text-white'} transition-colors`}>Courses</button>
-          <button onClick={() => { resetSelection(); setActiveTab('PRO'); }} className={`${activeTab === 'PRO' ? 'text-emerald-400' : 'hover:text-white'} transition-colors`}>PRO</button>
-          <span className="hover:text-white cursor-pointer transition-colors">Settings</span>
-          <span className="hover:text-white cursor-pointer transition-colors">About</span>
-        </nav>
-      </div>
-    </header>
-  );
 
-  // View: Running a Stage
-  if (selectedStage) {
-    return (
-      <div className="min-h-screen text-white p-4 sm:p-8 flex items-center justify-center">
-        <div className="w-full max-w-5xl">
-          <StageRunner
-            stage={selectedStage}
-            onBack={() => setSelectedStage(null)}
-            isPro={activeTab === 'PRO'}
-          />
-        </div>
-      </div>
-    );
-  }
+  const renderContent = () => {
+      // 1. Running a Stage
+      if (selectedStage) {
+          return (
+              <StageRunner
+                  stage={selectedStage}
+                  onBack={() => { setSelectedStage(null); setDrillStatus(null); }}
+                  isPro={activeTab === 'PRO'}
+                  onStatusChange={setDrillStatus}
+              />
+          );
+      }
 
-  // View: Selecting a Stage (Inside a Course)
-  if (selectedCourse) {
-    return (
-      <div className="min-h-screen text-white p-4 sm:p-8 flex items-center justify-center">
-        <div className="w-full max-w-5xl">
-          <TopNav />
-          
-          <div className="flex items-center space-x-4 mb-8 text-neutral-400 text-sm tracking-widest uppercase font-bold">
-            <button onClick={resetSelection} className="hover:text-white transition-colors">← Back to Courses</button>
-            <span className="text-neutral-600">/</span>
-            <span className="text-white">{selectedCourse.name}</span>
+      // 2. Inside a Course (Selecting a Stage)
+      if (selectedCourse) {
+          return (
+              <div className="animate-fade-in pointer-events-auto">
+                  <TopNav resetSelection={resetSelection} setActiveTab={setActiveTab} activeTab={activeTab} />
+                  
+                  <div className="flex items-center space-x-4 mb-8 text-neutral-400 text-sm tracking-widest uppercase font-bold">
+                    <button onClick={() => setSelectedCourse(null)} className="hover:text-white transition-colors">
+                        <span className="hidden sm:inline">ESC </span>← Back to Courses
+                    </button>
+                    <span className="text-neutral-600">/</span>
+                    <span className="text-white">{selectedCourse.name}</span>
+                  </div>
+
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    {selectedCourse.stages.map((stage, idx) => (
+                      <button
+                        key={stage.id}
+                        onClick={() => setSelectedStage(stage)}
+                        className={`p-6 text-left transition-all group text-white relative ${
+                          activeTab === 'PRO'
+                            ? 'bg-black/50 border border-white/10 hover:border-emerald-500/50 hover:bg-black/80 backdrop-blur-md'
+                            : 'hud-border hover:bg-white/5'
+                        } ${
+                          idx === focusedStageIdx
+                            ? 'ring-2 ring-emerald-500/60 ring-offset-1 ring-offset-transparent'
+                            : ''
+                        }`}
+                      >
+                        {activeTab !== 'PRO' && <div className="hud-crosshair-v"></div>}
+                        <div className="flex justify-between items-start mb-4">
+                          <span className={`text-xl font-bold tracking-tight group-hover:text-emerald-400 transition-colors uppercase ${idx === focusedStageIdx ? 'text-emerald-400' : ''}`}>{stage.name}</span>
+                          <span className="text-xs font-mono text-neutral-500 tracking-widest uppercase">
+                            Stg {String(idx + 1).padStart(2, '0')}
+                          </span>
+                        </div>
+                        <p className="text-neutral-400 text-xs font-mono leading-relaxed line-clamp-2">{stage.briefing}</p>
+                        
+                        <div className="mt-6 pt-4 border-t border-white/5 flex gap-4 text-xs font-mono text-neutral-500">
+                          <span>{stage.drills.length} DRILL{stage.drills.length > 1 ? 'S' : ''}</span>
+                          <span>/</span>
+                          <span>{stage.drills.reduce((acc, d) => acc + d.parTime, 0).toFixed(1)}S PAR</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Keyboard hints at bottom */}
+                  <div className="mt-8 flex justify-center gap-4 text-[10px] font-mono text-neutral-500 uppercase tracking-widest opacity-50">
+                    <span className="px-2 py-1 border border-white/10 rounded">← → Select Stage</span>
+                    <span className="px-2 py-1 border border-emerald-500/20 rounded text-emerald-600">ENTER Start</span>
+                    <span className="px-2 py-1 border border-white/10 rounded">ESC Back</span>
+                  </div>
+              </div>
+          );
+      }
+
+      // 3. Home / Course Selection
+      return (
+          <div className="animate-fade-in pointer-events-auto">
+              <TopNav resetSelection={resetSelection} setActiveTab={setActiveTab} activeTab={activeTab} />
+              <div className="mb-12">
+                  <h2 className="text-neutral-500 font-mono text-xs uppercase tracking-[0.3em] mb-2">
+                      {activeTab === 'PRO' ? 'PRO Environments' : 'Select Course Module'}
+                  </h2>
+                  <div className="w-12 h-[1px] bg-white/20"></div>
+              </div>
+              <CourseSelector
+                  courses={displayCourses}
+                  onSelect={setSelectedCourse}
+              />
+
+              {/* Keyboard hints */}
+              <div className="mt-8 flex justify-center gap-4 text-[10px] font-mono text-neutral-500 uppercase tracking-widest opacity-50">
+                <span className="px-2 py-1 border border-emerald-500/20 rounded text-emerald-600">ENTER Select</span>
+                {activeTab === 'PRO' && <span className="px-2 py-1 border border-white/10 rounded">ESC Back</span>}
+              </div>
           </div>
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            {selectedCourse.stages.map((stage, idx) => (
-              <button
-                key={stage.id}
-                onClick={() => setSelectedStage(stage)}
-                className="hud-border p-6 text-left hover:bg-white/5 transition-all group text-white"
-              >
-                <div className="hud-crosshair-v"></div>
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-xl font-bold tracking-tight group-hover:text-neutral-300 uppercase">{stage.name}</span>
-                  <span className="text-xs font-mono text-neutral-500 tracking-widest uppercase">
-                    Stg {String(idx + 1).padStart(2, '0')}
-                  </span>
-                </div>
-                <p className="text-neutral-400 text-xs font-mono leading-relaxed line-clamp-2">{stage.briefing}</p>
-                
-                <div className="mt-6 pt-4 border-t border-white/5 flex gap-4 text-xs font-mono text-neutral-500">
-                  <span>{stage.drills.length} DRILL{stage.drills.length > 1 ? 'S' : ''}</span>
-                  <span>/</span>
-                  <span>{stage.drills.reduce((acc, d) => acc + d.parTime, 0).toFixed(1)}S PAR</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // View: Home / Course Selection
-  const displayCourses = activeTab === 'PRO' 
-    ? coursesData.filter(c => c.id === 'regular') 
-    : coursesData;
+      );
+  };
 
   return (
-    <div className="min-h-screen text-white p-4 sm:p-8 flex items-center justify-center">
-      <div className="w-full max-w-5xl">
-        <TopNav />
+    <>
+      {activeTab === 'PRO' && (
+          <ProEnvironment enableControls={!selectedStage} drillStatus={drillStatus} />
+      )}
 
-        <div className="mb-12">
-          <h2 className="text-neutral-500 font-mono text-xs uppercase tracking-[0.3em] mb-2">
-            {activeTab === 'PRO' ? 'PRO Environments' : 'Select Course Module'}
-          </h2>
-          <div className="w-12 h-[1px] bg-white/20"></div>
+      {/* Main Overlay UI Layer */}
+      <div className="min-h-screen relative z-10 pointer-events-none flex items-center justify-center p-4 sm:p-8 text-white">
+        <div className="w-full max-w-5xl">
+            {renderContent()}
         </div>
-
-        <CourseSelector
-          courses={displayCourses}
-          onSelect={setSelectedCourse}
-        />
       </div>
-    </div>
+    </>
   );
 }
 
