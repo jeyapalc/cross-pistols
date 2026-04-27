@@ -47,10 +47,10 @@ class AudioEngine {
         this.playBeep(0.7, 800, 'sawtooth');
     }
 
-    // Play ultra-realistic pre-rendered MP3 from EdgeTTS
+    // Play pre-rendered WAV from Gemini TTS
     playScript(stageId, onWarning = null) {
         return new Promise((resolve) => {
-            const audioPath = `${import.meta.env.BASE_URL}audio/${this.voice}/${stageId}.mp3`;
+            const audioPath = `${import.meta.env.BASE_URL}audio/${this.voice}/${stageId}.wav`;
             const audioObj = new Audio(audioPath);
             let warningFired = false;
             
@@ -66,7 +66,7 @@ class AudioEngine {
 
             audioObj.onended = () => resolve();
             audioObj.onerror = () => {
-                console.error("Failed to load stage script MP3:", audioPath);
+                console.error("Failed to load stage script WAV:", audioPath);
                 resolve();
             };
             

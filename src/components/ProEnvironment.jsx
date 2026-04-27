@@ -12,6 +12,7 @@ const SCENES = {
     cockpit: '9e7bfa1049ec44a2a8d8d0bdaf51533c',
     subway: 'ab3df8a4a1024a8ca0458720d0101b79',
     duel: '37668987035a4436b2e731da04dac6cd',
+    hogwarts: 'bde62298ac8640588d5a2928b8e113dc',
 };
 
 /* ──────────────────────────────────────────────────────
@@ -102,6 +103,13 @@ const SCENE_CAMERAS = {
         period: 35,
         breathAmp: 0.02,
         lookSway: 0.08,
+    },
+    hogwarts: {
+        // Harry Potter - Hogwarts Great Hall (Animated)
+        useModelDefault: true,
+        period: 45,
+        breathAmp: 0.03,
+        lookSway: 0.12,
     },
 };
 
